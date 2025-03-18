@@ -1,0 +1,105 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 20px; /* Añadir padding para evitar que esté pegado a los márgenes */
+    background-color: #FFFB00;
+    background-image: url('../img/fondo.png'); /* Cambia esto a la ruta de tu imagen de fondo */
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: multiply;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 400px; /* Tamaño moderado para escritorio */
+    min-height: 300px; /* Altura suficiente para el contenido */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin: 20px; /* Añadir margen para evitar que esté pegado a los bordes */
+}
+
+.imagen {
+    width: 220px;
+    height: 200px;
+}
+
+.login-container img {
+    position: absolute;
+    top: -125px; /* Ajusta este valor según sea necesario */
+    left: 55%;
+    transform: translateX(-50%);
+    width: 200px; /* Tamaño moderado para la imagen */
+}
+
+.login-container input {
+    width: calc(100% - 20px); /* Ajusta el ancho según sea necesario */
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ffcc00;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.login-container button:hover {
+    background-color: #ff9900;
+}
+
+.login-container a {
+    display: block;
+    margin-top: 10px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+/* Estilos para móviles */
+@media (max-width: 767px) {
+    .login-container {
+        width: 90%; /* Ajusta el ancho para móviles */
+        padding: 20px; /* Reducir el padding para móviles */
+        margin: 20px; /* Añadir margen para evitar que esté pegado a los bordes */
+        margin-top: 100px; /* Añadir margen superior para evitar que la imagen pise el input */
+    }
+
+    .login-container img {
+        position: absolute;
+        top: -125px; /* Ajusta este valor según sea necesario */
+        left: 58%;
+        transform: translateX(-50%);
+        width: 175px; /* Reducir el tamaño de la imagen para móviles */
+    }
+
+    .login-container input {
+        font-size: 12px; /* Reducir el tamaño de la fuente para móviles */
+        width: calc(100% - 20px); /* Ajusta el ancho según sea necesario */
+    }
+
+    .login-container button {
+        font-size: 12px; /* Reducir el tamaño de la fuente para móviles */
+    }
+
+    .login-container a {
+        font-size: 15px; /* Reducir el tamaño de la fuente para móviles */
+    }
+}
