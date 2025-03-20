@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;    
 
 class AuthController extends Controller
 {
@@ -38,13 +40,31 @@ class AuthController extends Controller
         ]);
     }
 
-    public function showRegistrationForm()
-    {
-        return view('register');
-    }
+   // Mostrar formulario de registro
+   public function showRegistrationForm()
+   {
+       return view('register');
+   }
 
-    public function register(Request $request)
-    {
-        // Lógica de registro aquí
-    }
+   // Procesar registro
+   public function register(Request $request)
+   {
+       // Validar datos
+       $request->validate([
+           'nombre' => 'required|string|max:100',
+           'email' => 'required|string|email|max:150|unique:usuarios',
+           'password' => 'required|string|min:6|confirmed',
+       ]);
+
+ 
+       $user = new User();
+       $user->nombre = $request->nombre;
+       $user->email = $request->email;
+       $user->password = Hash::make($request->password);
+       $user->role_id = 2; // Asignar rol de usuario regular
+       $user->save();
+
+       // Redirigir al login
+       return redirect()->route('user.dashboard');
+   }
 }
