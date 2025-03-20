@@ -1,13 +1,22 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LugarController;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 
+
 Route::get('/', function () {
     return redirect('/login');
 });
+
+Route::get('/inicio', function () {
+    return view('inicio');
+});
+Route::get('/api/lugares', [LugarController::class, 'index']);
+
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
