@@ -35,7 +35,7 @@ class AuthController extends Controller
         // Autenticación fallida
         return back()->withErrors([
             'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
-        ]);
+        ])->withInput($request->only('email'))->with('error', 'Las credenciales proporcionadas no coinciden con nuestros registros.');
     }
 
     public function showRegistrationForm()

@@ -74,10 +74,17 @@ body {
 }
 
 .form-group input {
-    margin-top: 30px !important;
+    margin-top: 10% !important;
     padding: 10px !important;
     width: 90% !important;
     margin-left: 5% !important;
+}
+
+.text-danger {
+    color: red !important;
+    margin-left: 5% !important;
+    padding-top: 25px !important;
+    font-size: 14px !important;
 }
 
 /* Estilos para móviles */
@@ -109,6 +116,10 @@ body {
     }
 
     .login-container a {
+        font-size: 12px !important;
+    }
+
+    .text-danger {
         font-size: 12px !important;
     }
 }

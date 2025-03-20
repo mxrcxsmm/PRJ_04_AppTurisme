@@ -9,25 +9,36 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-
 </head>
 
 <body>
     <div class="login-container">
         <img class="imagen" src="{{ asset('img/logo.png') }}" alt="Inspector Gadget">
-        <form action="{{ route('login') }}" method="POST">
+        @if (session('status'))
+            <div class="bg-green-100 text-green-600 p-3 rounded-lg mb-4">
+                {{ session('status') }}
+            </div>
+            @endif
+        <form id="loginForm" action="{{ route('login') }}" method="POST">
             @csrf
             <div class="form-group">
-                <input type="text" name="email" class="form-control" placeholder="Email">
-                @if ($errors->has('email'))
-                    <span class="text-danger">{{ $errors->first('email') }}</span>
-                @endif
+                <input type="text" id="email" name="email" class="form-control" placeholder="Email" value="{{ old('email') }}">
+                <!-- Mensaje de error para el correo electrónico -->
+                @error('email')
+                <span id="emailError" class="text-danger @if(!$errors->has('email')) hidden @endif">
+                    {{ $errors->first('email') }}
+                </span>
+                @enderror
             </div>
             <div class="form-group">
-                <input type="password" name="password" class="form-control" placeholder="Contraseña">
-                @if ($errors->has('password'))
-                    <span class="text-danger">{{ $errors->first('password') }}</span>
-                @endif
+                <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña">
+                
+                <!-- Mensaje de error para la contraseña -->
+                @error('password')
+                <span id="passwordError" class="text-danger @if(!$errors->has('password')) hidden @endif">
+                    {{ $errors->first('password') }}
+                </span>
+                @enderror
             </div>
             <button type="submit" class="btn btn-primary btn-block">ENTRAR</button>
         </form>
@@ -37,6 +48,20 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Custom JS -->
+    <script src="{{ asset('js/login.js') }}"></script>
+    @if (session('error'))
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de autenticación',
+            text: "{{ session('error') }}",
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Aceptar'
+        });
+    </script>
+    @endif
 </body>
-
 </html>
