@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
     <title>Gimcana</title>   
     <style>
         #map { 
@@ -48,7 +49,13 @@
         <button class="filter-button" data-icon="🛒">Tiendas</button>
         <button class="filter-button" data-icon="➕">Más</button>
         <button class="filter-button" data-icon="🏠">Inicio</button>
+        <form action="{{ route('logout') }}" method="POST" class="logout-form">
+            @csrf
+            <button type="submit" class="button-logout">Cerrar sesión</button>
+        </form>
     </div>
+
+    
 
     <div id="map"></div>
 
