@@ -4,102 +4,111 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    padding: 20px; /* Añadir padding para evitar que esté pegado a los márgenes */
-    background-color: #FFFB00;
-    background-image: url('../img/fondo.png'); /* Cambia esto a la ruta de tu imagen de fondo */
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: multiply;
+    padding: 20px;
+    background-color: #FFFB00 !important;
+    background-image: url('../img/fondo.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-blend-mode: multiply !important;
 }
 
 .login-container {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    width: 400px; /* Tamaño moderado para escritorio */
-    min-height: 300px; /* Altura suficiente para el contenido */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    margin: 20px; /* Añadir margen para evitar que esté pegado a los bordes */
+    background: rgba(255, 255, 255, 0.9) !important;
+    padding: 30px !important;
+    border-radius: 15px !important;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2) !important;
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 500px !important; /* Aumentar el ancho máximo del contenedor */
+    min-height: 350px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: left !important;
+    position: relative !important;
+    margin: 20px !important;
 }
 
 .imagen {
-    width: 220px;
-    height: 200px;
+    width: 220px !important;
+    height: 200px !important;
 }
 
 .login-container img {
-    position: absolute;
-    top: -125px; /* Ajusta este valor según sea necesario */
-    left: 55%;
-    transform: translateX(-50%);
-    width: 200px; /* Tamaño moderado para la imagen */
-}
-
-.login-container input {
-    width: calc(100% - 20px); /* Ajusta el ancho según sea necesario */
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+    position: absolute !important;
+    top: -135px !important;
+    left: 55% !important;
+    transform: translateX(-50%) !important;
+    width: 200px !important;
 }
 
 .login-container button {
-    width: 100%;
-    padding: 10px;
-    background-color: #ffcc00;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 15px;
+    width: 90% !important; /* Ajustar el ancho del botón */
+    padding: 10px !important;
+    background-color: #ffcc00 !important;
+    border: none !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    margin-top: 35px !important;
+    margin-left: 5% !important;
 }
 
 .login-container button:hover {
-    background-color: #ff9900;
+    background-color: #ff9900 !important;
+    
 }
 
 .login-container a {
-    display: block;
-    margin-top: 10px;
-    color: #007bff;
-    text-decoration: none;
-    font-size: 16px;
+    display: block !important;
+    margin-top: 10px !important;
+    color: #007bff !important;
+    text-decoration: none !important;
+    font-size: 16px !important;
+}
+
+.form-group {
+    text-align: left !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+.form-group input {
+    margin-top: 30px !important;
+    padding: 10px !important;
+    width: 90% !important;
+    margin-left: 5% !important;
 }
 
 /* Estilos para móviles */
 @media (max-width: 767px) {
     .login-container {
-        width: 90%; /* Ajusta el ancho para móviles */
-        padding: 20px; /* Reducir el padding para móviles */
-        margin: 20px; /* Añadir margen para evitar que esté pegado a los bordes */
-        margin-top: 100px; /* Añadir margen superior para evitar que la imagen pise el input */
+        width: 90% !important;
+        padding: 20px !important;
+        margin: 20px !important;
+        margin-top: 100px !important;
     }
-
+    
     .login-container img {
-        position: absolute;
-        top: -125px; /* Ajusta este valor según sea necesario */
-        left: 58%;
-        transform: translateX(-50%);
-        width: 175px; /* Reducir el tamaño de la imagen para móviles */
+        position: absolute !important;
+        top: -135px !important;
+        left: 55% !important;
+        transform: translateX(-50%) !important;
+        width: 175px !important;
     }
 
     .login-container input {
-        font-size: 12px; /* Reducir el tamaño de la fuente para móviles */
-        width: calc(100% - 20px); /* Ajusta el ancho según sea necesario */
+        font-size: 12px !important;
+        width: 90% !important;
     }
 
     .login-container button {
-        font-size: 12px; /* Reducir el tamaño de la fuente para móviles */
+        font-size: 12px !important;
+        width: 90% !important;
+        margin-top: 25px !important;
     }
 
     .login-container a {
-        font-size: 15px; /* Reducir el tamaño de la fuente para móviles */
+        font-size: 12px !important;
     }
 }

@@ -9,7 +9,7 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.login');
+        return view('login');
     }
 
     public function login(Request $request)
@@ -24,7 +24,12 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             // Autenticación exitosa
-            return redirect()->intended('admin.dashboard');
+            $user = Auth::user();
+            if ($user->role_id == 1) {
+                return redirect()->intended('admin/dashboard');
+            } else {
+                return redirect()->intended('user/dashboard');
+            }
         }
 
         // Autenticación fallida
@@ -35,7 +40,7 @@ class AuthController extends Controller
 
     public function showRegistrationForm()
     {
-        return view('auth.register');
+        return view('register');
     }
 
     public function register(Request $request)
