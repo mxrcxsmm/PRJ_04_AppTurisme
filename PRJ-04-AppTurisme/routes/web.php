@@ -24,8 +24,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
+// Ruta para cerrar sesión
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('user/dashboard', [UserController::class, 'index'])->name('user.dashboard');
+    Route::get('inicio', [UserController::class, 'index'])->name('inicio');
 });
 
