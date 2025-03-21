@@ -1,10 +1,94 @@
+body {
+    font-family: "Parkinsans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    margin: 0%;
+}
+
+.cabezera-container {
+    display: flex;
+    justify-content: center;
+    /* Centra horizontalmente */
+    align-items: flex-start;
+    position: relative;
+    z-index: 1000;
+    padding-top: 10px;
+    /* Espaciado superior */
+}
+
+.cabezera {
+    width: auto;
+    /* Ancho automático según el contenido */
+    max-width: 800px;
+    /* Límite máximo de ancho */
+    background-color: yellow;
+    padding: 10px;
+    /* Espaciado interno */
+    border-radius: 10px;
+    /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Sombra para destacar */
+    text-align: center;
+    /* Alinea el contenido de la cabecera al centro */
+    box-shadow: 5px 10px rgba(128, 128, 128, 0.445);
+}
+
 .button-logout {
     background-color: #FF6347;
-    width: 100%;
+    width: 200px;
     padding: 10px;
     margin-bottom: 10px;
     text-align: center;
     color: #fff;
-    text-decoration: none;
     border-radius: 5px;
+    border: none;
+    height: 50px;
+}
+
+#map {
+    height: 100vh;
+    /* El mapa ocupa toda la altura de la pantalla */
+    width: 100%;
+    /* El mapa ocupa todo el ancho de la pantalla */
+    position: absolute;
+    /* Posicionamiento absoluto */
+    top: 0;
+    /* Comienza desde la parte superior */
+    left: 0;
+    /* Comienza desde el lado izquierdo */
+    z-index: 1;
+    /* Asegura que el mapa esté detrás de la cabecera */
+}
+
+.search-container {
+    padding: 10px;
+}
+
+.filter-buttons {
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    /* Centra los botones horizontalmente */
+}
+
+.filter-button {
+    width: 150px;
+    height: 50px;
+    border: none;
+    background: white;
+    border-radius: 5px;
+}
+
+.search-box {
+    width: 100%;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+}
+
+@media (max-width: 600px) {
+    .cabezera {
+        width: 80%;
+    }
 }
