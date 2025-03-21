@@ -9,6 +9,11 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
+    <script src="{{ asset('js/validaciones.js') }}"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+    
 </head>
 
 <body>
@@ -22,16 +27,17 @@
         <form id="loginForm" action="{{ route('login') }}" method="POST">
             @csrf
             <div class="form-group">
-                <input type="text" id="email" name="email" class="form-control" placeholder="Email" value="{{ old('email') }}">
+                <input type="text" id="email" name="email" class="form-control" placeholder="Email" value="{{ old('email') }}" onblur="validarEmail()">
                 <!-- Mensaje de error para el correo electrónico -->
                 @error('email')
                 <span id="emailError" class="text-danger @if(!$errors->has('email')) hidden @endif">
                     {{ $errors->first('email') }}
                 </span>
                 @enderror
+                <p id="errorEmail" class="text-danger"></p>
             </div>
             <div class="form-group">
-                <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña">
+                <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña"  onblur="validarPassword()">
                 
                 <!-- Mensaje de error para la contraseña -->
                 @error('password')
@@ -39,6 +45,7 @@
                     {{ $errors->first('password') }}
                 </span>
                 @enderror
+                <p id="errorPassword" class="text-danger"></p>
             </div>
             <button type="submit" class="btn btn-primary btn-block">ENTRAR</button>
         </form>

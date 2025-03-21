@@ -1,4 +1,7 @@
 body {
+    font-family: "Parkinsans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,7 +22,8 @@ body {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2) !important;
     text-align: center !important;
     width: 100% !important;
-    max-width: 500px !important; /* Aumentar el ancho máximo del contenedor */
+    max-width: 500px !important;
+    /* Aumentar el ancho máximo del contenedor */
     min-height: 350px !important;
     display: flex !important;
     flex-direction: column !important;
@@ -43,7 +47,8 @@ body {
 }
 
 .login-container button {
-    width: 90% !important; /* Ajustar el ancho del botón */
+    width: 90% !important;
+    /* Ajustar el ancho del botón */
     padding: 10px !important;
     background-color: #ffcc00 !important;
     border: none !important;
@@ -56,7 +61,6 @@ body {
 
 .login-container button:hover {
     background-color: #ff9900 !important;
-    
 }
 
 .login-container a {
@@ -82,12 +86,14 @@ body {
 
 .text-danger {
     color: red !important;
-    margin-left: 5% !important;
-    padding-top: 25px !important;
+    margin-left: 23px;
+    margin-top: 10px;
     font-size: 14px !important;
 }
 
+
 /* Estilos para móviles */
+
 @media (max-width: 767px) {
     .login-container {
         width: 90% !important;
@@ -95,7 +101,6 @@ body {
         margin: 20px !important;
         margin-top: 100px !important;
     }
-    
     .login-container img {
         position: absolute !important;
         top: -135px !important;
@@ -103,22 +108,18 @@ body {
         transform: translateX(-50%) !important;
         width: 175px !important;
     }
-
     .login-container input {
         font-size: 12px !important;
         width: 90% !important;
     }
-
     .login-container button {
         font-size: 12px !important;
         width: 90% !important;
         margin-top: 25px !important;
     }
-
     .login-container a {
         font-size: 12px !important;
     }
-
     .text-danger {
         font-size: 12px !important;
     }

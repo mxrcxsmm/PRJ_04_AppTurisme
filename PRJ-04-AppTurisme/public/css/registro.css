@@ -1,4 +1,7 @@
 body {
+    font-family: "Parkinsans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -79,6 +82,13 @@ body {
     padding: 10px !important;
     width: 90% !important;
     margin-left: 5% !important;
+}
+
+.text-danger {
+    color: red;
+    font-size: 0.9rem;
+    margin-left: 23px;
+    margin-top: 10px;
 }
 
 
