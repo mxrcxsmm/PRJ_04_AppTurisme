@@ -14,11 +14,16 @@ class CreateUsuariosTable extends Migration
             $table->string('email', 150)->unique();
             $table->string('password', 255);
             $table->unsignedInteger('role_id')->default(2); // 1 = admin, 2 = usuario
+            $table->unsignedInteger('grupo_id')->nullable();
             $table->timestamps();
             
             $table->foreign('role_id')
                   ->references('id')->on('roles')
                   ->onDelete('restrict');
+            
+            $table->foreign('grupo_id')
+                ->references('id')->on('grupos')
+                ->onDelete('restrict');
         });
     }
 

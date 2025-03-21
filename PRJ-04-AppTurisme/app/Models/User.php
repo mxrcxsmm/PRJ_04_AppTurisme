@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id', // Si usas roles, asegúrate de incluir esta columna
+        'grupo_id',
     ];
 
     /**
