@@ -78,6 +78,7 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->role_id = 2; // Asignar rol de usuario regular
+        $user->grupo_id = null;
         $user->save();
 
         // Autenticar al usuario automáticamente después del registro
