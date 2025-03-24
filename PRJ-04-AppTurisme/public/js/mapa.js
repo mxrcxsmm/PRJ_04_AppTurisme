@@ -1,5 +1,6 @@
 // Inicializar el mapa
 let map = L.map('map').setView([41.38879, 2.15899], 13);
+
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -9,112 +10,144 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let userMarker = null;
 let watchId = null;
 let marcadores = [];
+let userPosition = null;
+let activeFilter = null;
 
-// Función para actualizar la posición del marcador
-function updateMarkerPosition(position) {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-    const userLatLng = L.latLng(lat, lng);
-    
-    if (!userMarker) {
-        userMarker = L.marker(userLatLng).addTo(map);
-    } else {
-        userMarker.setLatLng(userLatLng);
-    }
-    
-    map.setView(userLatLng, 15);
+// Geolocalización del usuario
+function locateUser() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            userPosition = L.latLng(lat, lng);
 
-    // Si el usuario está en un grupo, cargar lugares cercanos
-    if (document.querySelector('.searching-text')) {
-        loadNearbyPlaces(userLatLng);
+            if (!userMarker) {
+                userMarker = L.marker(userPosition, {
+                    icon: L.icon({
+                        iconUrl: '/img/user-marker.png',
+                        iconSize: [32, 32]
+                    })
+                }).addTo(map);
+            } else {
+                userMarker.setLatLng(userPosition);
+            }
+
+            map.setView(userPosition);
+            cargarLugaresCercanos();
+        }, error => console.error("Error obteniendo la geolocalización:", error), {
+            enableHighAccuracy: true
+        });
     }
 }
 
-// Función para manejar errores de geolocalización
-function handleLocationError(error) {
-    let mensaje = '';
-    switch(error.code) {
-        case error.PERMISSION_DENIED:
-            mensaje = "Debes permitir la geolocalización para jugar.";
-            break;
-        case error.POSITION_UNAVAILABLE:
-            mensaje = "La información de ubicación no está disponible.";
-            break;
-        case error.TIMEOUT:
-            mensaje = "Se agotó el tiempo para obtener la ubicación.";
-            break;
-        default:
-            mensaje = "Error desconocido de geolocalización.";
-            break;
-    }
-    alert(mensaje);
-}
+// Cargar lugares cercanos desde la API
+function cargarLugaresCercanos() {
+    if (!userPosition) return;
 
-// Limpiar marcadores existentes
-function limpiarMarcadores() {
-    marcadores.forEach(marker => map.removeLayer(marker));
-    marcadores = [];
-}
-
-// Cargar lugares cercanos
-function loadNearbyPlaces(userLatLng) {
-    fetch('/api/lugares/cercanos')
-        .then(function(response) { return response.json(); })
-        .then(function(lugares) {
-            limpiarMarcadores();
-            
-            lugares.forEach(function(lugar) {
-                const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-                const distancia = userLatLng.distanceTo(lugarLatLng);
-
-                // Solo mostrar lugares a menos de 100 metros
-                if (distancia <= 100) {
-                    const marker = L.marker(lugarLatLng)
-                        .bindPopup(`
-                            <h3>${lugar.nombre}</h3>
-                            <p>${lugar.descripcion}</p>
-                            <p>Distancia: ${Math.round(distancia)}m</p>
-                        `);
-                    
-                    marker.addTo(map);
-                    marcadores.push(marker);
-                }
-            });
+    fetch('/api/lugares')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar lugares');
+            }
+            return response.json();
         })
-        .catch(function(error) {
-            console.error('Error cargando lugares:', error);
+        .then(data => {
+            lugares = data;
+
+            // Filtrar lugares cercanos (5 kilometros de distancia)
+            const lugaresCercanos = lugares.filter(lugar => {
+                const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+                const distancia = userPosition.distanceTo(lugarLatLng);
+                lugar.distancia = distancia; // Guardamos la distancia para mostrarla
+                return distancia <= 5000;
+            });
+
+            if (activeFilter) {
+                filtrarLugares(activeFilter);
+            } else {
+                mostrarLugares(lugaresCercanos);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar lugares:', error);
         });
 }
 
-// Iniciar geolocalización
-function startGeolocation() {
-    if ("geolocation" in navigator) {
-        const options = {
-            enableHighAccuracy: true,
-            timeout: 30000,
-            maximumAge: 0
-        };
+// Mostrar lugares en el mapa
+function mostrarLugares(lugaresArray) {
+    // Limpiar marcadores existentes
+    marcadores.forEach(marker => map.removeLayer(marker));
+    marcadores = [];
 
-        if (watchId) {
-            navigator.geolocation.clearWatch(watchId);
-        }
+    lugaresArray.forEach(lugar => {
+        const markerIcon = lugar.marker ? `/img/${lugar.marker}` : '/img/user-marker.png';
 
-        watchId = navigator.geolocation.watchPosition(
-            updateMarkerPosition,
-            handleLocationError,
-            options
-        );
-    } else {
-        alert("Tu navegador no soporta geolocalización");
-    }
+        const marker = L.marker([lugar.latitud, lugar.longitud], {
+            icon: L.icon({
+                iconUrl: markerIcon,
+                iconSize: [32, 32]
+            })
+        });
+
+        marker.bindPopup(`
+            <h3>${lugar.nombre}</h3>
+            <p>${lugar.descripcion}</p>
+            <p>${lugar.direccion}</p>
+            <p>Distancia: ${Math.round(lugar.distancia)}m</p>
+        `);
+
+        marker.addTo(map);
+        marcadores.push(marker);
+    });
 }
 
-// Iniciar cuando se carga la página
-document.addEventListener('DOMContentLoaded', startGeolocation);
+// Búsqueda de lugares
+document.getElementById('searchBox').addEventListener('input', (e) => {
+    if (!userPosition) return;
 
-// Limpiar al cerrar
-window.addEventListener('beforeunload', function() {
-    if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-    }
+    const searchTerm = e.target.value.toLowerCase();
+    const lugaresFiltered = lugares.filter(lugar => {
+        const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+        const distancia = userPosition.distanceTo(lugarLatLng);
+        return distancia <= 5000 && lugar.nombre.toLowerCase().includes(searchTerm);
+    });
+
+    mostrarLugares(lugaresFiltered);
 });
+
+// Filtrar lugares por etiquetas
+function filtrarLugares(tipo) {
+    if (!userPosition) return;
+
+    const lugaresFiltered = lugares.filter(lugar => {
+        const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+        const distancia = userPosition.distanceTo(lugarLatLng);
+        const tieneEtiqueta = lugar.etiquetas && lugar.etiquetas.some(et => et.nombre === tipo);
+        return distancia <= 5000 && tieneEtiqueta;
+    });
+
+    mostrarLugares(lugaresFiltered);
+}
+
+// Event listeners para los botones de filtro
+document.querySelectorAll('.filter-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const tipo = button.textContent;
+
+        // Toggle del filtro activo
+        if (activeFilter === tipo) {
+            activeFilter = null;
+            button.classList.remove('active');
+            cargarLugaresCercanos();
+        } else {
+            // Desactivar botón anterior si existe
+            document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            activeFilter = tipo;
+            filtrarLugares(tipo);
+        }
+    });
+});
+
+// Inicializar
+locateUser();
