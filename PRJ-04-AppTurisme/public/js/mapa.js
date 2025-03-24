@@ -67,11 +67,11 @@ function cargarLugaresCercanos() {
                 return distancia <= 5000;
             });
 
-            if (activeFilter) {
-                filtrarLugares(activeFilter);
-            } else {
-                mostrarLugares(lugaresCercanos);
-            }
+            // Mostrar los lugares cercanos
+            mostrarLugares(lugaresCercanos);
+
+            // Centrar el mapa en la posición del usuario
+            map.setView(userPosition, 13); // Zoom al nivel 13 para ver mejor el área
         })
         .catch(error => {
             console.error('Error al cargar lugares:', error);
@@ -113,8 +113,8 @@ document.getElementById('searchBox').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase().trim(); // Eliminar espacios en blanco y convertir a minúsculas
 
     if (searchTerm.length === 0) {
-        // Si el campo de búsqueda está vacío, limpiar marcadores
-        mostrarLugares([]);
+        // Si el campo de búsqueda está vacío, cargar los lugares cercanos
+        cargarLugaresCercanos();
         return;
     }
 
