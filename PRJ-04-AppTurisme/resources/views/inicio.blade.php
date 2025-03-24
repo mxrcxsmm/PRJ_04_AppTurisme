@@ -16,6 +16,11 @@
     <title>Inicio</title>
 </head>
 <body>
+    <div class="hamburger-menu" onclick="toggleMenu()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
     <div class="cabezera-container">
         <div class="cabezera">
             <div class="search-container">
@@ -34,7 +39,6 @@
             </div>
         </div>
     </div>
-    
 
     <div id="map"></div>
 
@@ -99,6 +103,12 @@
                 document.getElementById('pistaModal').style.display = 'block';
             });
         @endif
+
+        // Función para mostrar/ocultar el menú en dispositivos móviles
+        function toggleMenu() {
+            const cabezeraContainer = document.querySelector('.cabezera-container');
+            cabezeraContainer.classList.toggle('active');
+        }
     </script>
 </body>
 </html>
