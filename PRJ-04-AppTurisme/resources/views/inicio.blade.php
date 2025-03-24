@@ -26,17 +26,17 @@
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox" placeholder="Buscar localizaciones">
             </div>
-            <div class="filter-buttons">
-                <button class="filter-button" data-icon="❤️">Favoritos</button>
-                <button class="filter-button" data-icon="🍴">Restaurantes</button>
-                <button class="filter-button" data-icon="🛒">Tiendas</button>
-                <button class="filter-button" data-icon="➕">Más</button>
-                <button class="filter-button" data-icon="🏠">Inicio</button>
+                <div class="filter-buttons">
+                    <button class="filter-button" data-etiqueta="Restaurante">Restaurantes</button>
+                    <button class="filter-button" data-etiqueta="Museo">Museos</button>
+                    <button class="filter-button" data-etiqueta="Tienda">Tiendas</button>
+                    <button class="filter-button" data-etiqueta="Parque">Parques</button>
+                    <button class="filter-button" data-etiqueta="Bar">Bares</button>
                 <form action="{{ route('logout') }}" method="POST" class="logout-form">
                     @csrf
                     <button type="submit" class="button-logout">Cerrar sesión</button>
                 </form>
-            </div>
+                </div>
         </div>
     </div>
 

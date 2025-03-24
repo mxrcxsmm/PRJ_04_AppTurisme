@@ -151,8 +151,11 @@ function filtrarLugares(tipo) {
     const lugaresFiltered = lugares.filter(lugar => {
         const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
         const distancia = userPosition.distanceTo(lugarLatLng);
+
+        // Verificar si el lugar tiene la etiqueta seleccionada
         const tieneEtiqueta = lugar.etiquetas && lugar.etiquetas.some(et => et.nombre === tipo);
-        return distancia <= 5000 && tieneEtiqueta;
+
+        return distancia <= 5000 && tieneEtiqueta; // Filtrar por distancia y etiqueta
     });
 
     mostrarLugares(lugaresFiltered);
@@ -161,19 +164,20 @@ function filtrarLugares(tipo) {
 // Event listeners para los botones de filtro
 document.querySelectorAll('.filter-button').forEach(button => {
     button.addEventListener('click', () => {
-        const tipo = button.textContent;
+        const tipo = button.getAttribute('data-etiqueta'); // Obtener el nombre de la etiqueta
 
-        // Toggle del filtro activo
         if (activeFilter === tipo) {
             activeFilter = null;
-            button.classList.remove('active');
-            cargarLugaresCercanos();
+            button.classList.remove('active'); // Desactivar el botón
+            cargarLugaresCercanos(); // Restaurar todos los lugares cercanos
         } else {
             // Desactivar botón anterior si existe
             document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+
+            // Activar el botón actual
             button.classList.add('active');
             activeFilter = tipo;
-            filtrarLugares(tipo);
+            filtrarLugares(tipo); // Filtrar por la etiqueta seleccionada
         }
     });
 });
