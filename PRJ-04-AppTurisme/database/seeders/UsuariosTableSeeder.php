@@ -14,7 +14,7 @@ class UsuariosTableSeeder extends Seeder
             [
                 'nombre'      => 'Admin User',
                 'email'       => 'admin@example.com',
-                'password'    => Hash::make('password'),
+                'password'    => Hash::make('qweQWE123'),
                 'role_id'     => 1,
                 'created_at'  => now(),
                 'updated_at'  => now(),
@@ -22,7 +22,7 @@ class UsuariosTableSeeder extends Seeder
             [
                 'nombre'      => 'Regular User',
                 'email'       => 'user@example.com',
-                'password'    => Hash::make('password'),
+                'password'    => Hash::make('qweQWE123'),
                 'role_id'     => 2,
                 'created_at'  => now(),
                 'updated_at'  => now(),
