@@ -43,11 +43,12 @@
     <div id="map"></div>
 
     @if(!$grupo)
-        <button class="play-button" onclick="openLobby()">Jugar Gimcana</button>
+        <button class="play-button" onclick="openLobby()">Jugar Gincana</button>
         
         <!-- Modal Lobby -->
         <div id="lobbyModal" class="modal">
             <div class="modal-content">
+                <span class="close" onclick="closeLobby()">&times;</span>
                 <h2>Lobby de Jugadores</h2>
                 <div class="users-list" id="usersList">
                     <!-- Los usuarios se cargarán aquí dinámicamente -->
@@ -80,6 +81,10 @@
         function openLobby() {
             document.getElementById('lobbyModal').style.display = 'block';
             loadUsers();
+        }
+
+        function closeLobby() {
+            document.getElementById('lobbyModal').style.display = 'none';
         }
 
         async function loadUsers() {

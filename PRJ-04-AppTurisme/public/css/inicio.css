@@ -93,6 +93,15 @@ body {
     border-radius: 10px;
 }
 
+.modal-content .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
 .users-list {
     max-height: 300px;
     overflow-y: auto;
@@ -203,6 +212,15 @@ body {
     width: 80%;
     max-width: 500px;
     border-radius: 10px;
+}
+
+.modal-content .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .users-list {
