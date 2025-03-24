@@ -9,101 +9,11 @@
     <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
 
     <title>Gimcana</title>   
-    <style>
-        #map { 
-            height: 80vh;
-            width: 100%;
-            margin-top: 10px;
-        }
-        .search-container {
-            padding: 10px;
-            background: yellow;
-        }
-        .filter-buttons {
-            padding: 10px;
-            display: flex;
-            gap: 10px;
-            background: yellow;
-        }
-        .filter-button {
-            padding: 10px;
-            border: none;
-            background: white;
-            border-radius: 5px;
-        }
-        .search-box {
-            width: 100%;
-            padding: 10px;
-            border-radius: 20px;
-            border: none;
-        }
-        .play-button {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 30px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 18px;
-            z-index: 1000;
-        }
-
-        .searching-text {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            border-radius: 25px;
-            z-index: 1000;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 2000;
-        }
-
-        .modal-content {
-            position: relative;
-            background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 10px;
-        }
-
-        .users-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .user-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
     <title>Inicio</title>
-
 </head>
 <body>
     <div class="cabezera-container">
@@ -157,6 +67,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{{ asset('js/mapa.js') }}"></script>
     <script>
         // Configurar CSRF token
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -189,6 +100,5 @@
             });
         @endif
     </script>
-    <script src="{{ asset('js/mapa.js') }}"></script>
 </body>
 </html>

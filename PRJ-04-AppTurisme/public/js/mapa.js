@@ -1,14 +1,19 @@
-let map = L.map('map').setView([41.38879, 2.15899], 13);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
 // Variables globales
+let map = L.map('map').setView([41.38879, 2.15899], 13);
 let userMarker;
 let lugares = [];
 let marcadores = [];
 let userPosition = null;
 let activeFilter = null;
+
+// Configurar capa de mapa
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+// Configurar CSRF token para Axios
+axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // Geolocalización del usuario
 function locateUser() {
@@ -16,9 +21,9 @@ function locateUser() {
         navigator.geolocation.watchPosition(function(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            
+
             userPosition = L.latLng(lat, lng);
-            
+
             if (!userMarker) {
                 userMarker = L.marker(userPosition, {
                     icon: L.icon({
@@ -29,10 +34,12 @@ function locateUser() {
             } else {
                 userMarker.setLatLng(userPosition);
             }
-            
+
             map.setView(userPosition);
             cargarLugaresCercanos();
         });
+    } else {
+        console.error("Geolocalización no está disponible en este navegador.");
     }
 }
 
@@ -43,7 +50,7 @@ async function cargarLugaresCercanos() {
     try {
         const response = await axios.get('/api/lugares');
         lugares = response.data;
-        
+
         // Filtrar lugares por distancia (100 metros) usando Leaflet
         const lugaresCercanos = lugares.filter(lugar => {
             const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
@@ -90,34 +97,55 @@ function mostrarLugares(lugaresArray) {
 
 // Búsqueda de lugares
 document.getElementById('searchBox').addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
+    const searchTerm = e.target.value.toLowerCase().trim(); // Eliminar espacios en blanco y convertir a minúsculas
+
+    if (searchTerm.length === 0) {
+        // Si el campo de búsqueda está vacío, limpiar marcadores
+        mostrarLugares([]);
+        return;
+    }
+
     const lugaresFiltered = lugares.filter(lugar => {
-        const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-        const distancia = userPosition.distanceTo(lugarLatLng);
-        return distancia <= 100 && lugar.nombre.toLowerCase().includes(searchTerm);
+        return lugar.nombre.toLowerCase().includes(searchTerm); // Comparación insensible a mayúsculas/minúsculas
     });
-    mostrarLugares(lugaresFiltered);
+
+    if (lugaresFiltered.length > 0) {
+        // Mostrar los lugares filtrados
+        mostrarLugares(lugaresFiltered);
+
+        // Centrar el mapa en el primer lugar encontrado
+        const primerLugar = lugaresFiltered[0];
+        const primerLugarLatLng = L.latLng(primerLugar.latitud, primerLugar.longitud);
+        map.setView(primerLugarLatLng, 15); // Zoom al nivel 15 para ver mejor el lugar
+    } else {
+        // Limpiar marcadores si no hay resultados
+        mostrarLugares([]);
+        console.log("No se encontraron resultados para:", searchTerm);
+    }
 });
 
 // Filtrado por botones
 function filtrarLugares(tipo) {
     if (!userPosition) return;
-    
+
     const lugaresFiltered = lugares.filter(lugar => {
         const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
         const distancia = userPosition.distanceTo(lugarLatLng);
-        const tieneEtiqueta = lugar.etiquetas.some(et => et.nombre === tipo);
+
+        // Verificar etiquetas de forma segura
+        const tieneEtiqueta = lugar.etiquetas && lugar.etiquetas.some(et => et.nombre === tipo);
+
         return distancia <= 100 && tieneEtiqueta;
     });
-    
+
     mostrarLugares(lugaresFiltered);
 }
 
 // Event listeners para los botones de filtro
 document.querySelectorAll('.filter-button').forEach(button => {
     button.addEventListener('click', () => {
-        const tipo = button.textContent;
-        
+        const tipo = button.textContent.trim();
+
         // Toggle del filtro activo
         if (activeFilter === tipo) {
             activeFilter = null;
@@ -125,7 +153,7 @@ document.querySelectorAll('.filter-button').forEach(button => {
             cargarLugaresCercanos();
         } else {
             // Desactivar botón anterior si existe
-            document.querySelectorAll('.filter-button').forEach(btn => 
+            document.querySelectorAll('.filter-button').forEach(btn =>
                 btn.classList.remove('active')
             );
             button.classList.add('active');
@@ -136,4 +164,6 @@ document.querySelectorAll('.filter-button').forEach(button => {
 });
 
 // Inicializar
-locateUser();
+document.addEventListener('DOMContentLoaded', () => {
+    locateUser();
+});
