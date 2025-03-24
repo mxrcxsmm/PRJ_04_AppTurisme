@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
 
     <title>Gimcana</title>   
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+    <title>Inicio</title>
 </head>
 <body>
     <div class="hamburger-menu" onclick="toggleMenu()">
@@ -66,6 +71,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{{ asset('js/mapa.js') }}"></script>
     <script>
         // Configurar CSRF token
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -104,6 +110,5 @@
             cabezeraContainer.classList.toggle('active');
         }
     </script>
-    <script src="{{ asset('js/mapa.js') }}"></script>
 </body>
 </html>
