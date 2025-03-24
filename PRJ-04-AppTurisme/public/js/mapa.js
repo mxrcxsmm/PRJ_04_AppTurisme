@@ -28,7 +28,7 @@ function locateUser() {
                 userMarker = L.marker(userPosition, {
                     icon: L.icon({
                         iconUrl: '/img/user-marker.png',
-                        iconSize: [32, 32]
+                        iconSize: [12, 12]
                     })
                 }).addTo(map);
             } else {
@@ -90,7 +90,7 @@ function mostrarLugares(lugaresArray) {
         const marker = L.marker([lugar.latitud, lugar.longitud], {
             icon: L.icon({
                 iconUrl: markerIcon,
-                iconSize: [32, 32]
+                iconSize: [20, 24]
             })
         });
 
