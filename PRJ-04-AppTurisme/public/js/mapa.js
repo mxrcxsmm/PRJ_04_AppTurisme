@@ -1,12 +1,5 @@
 // Variables globales
 let map = L.map('map').setView([41.38879, 2.15899], 13);
-
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-
-// Variables globales
 let userMarker;
 let lugares = [];
 let marcadores = [];
@@ -66,7 +59,7 @@ function cargarLugaresCercanos() {
         .then(data => {
             lugares = data;
 
-            // Filtrar lugares cercanos (5 kilometros de distancia)
+            // Filtrar lugares cercanos (5 kilómetros de distancia)
             const lugaresCercanos = lugares.filter(lugar => {
                 const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
                 const distancia = userPosition.distanceTo(lugarLatLng);
@@ -117,14 +110,38 @@ function mostrarLugares(lugaresArray) {
 document.getElementById('searchBox').addEventListener('input', (e) => {
     if (!userPosition) return;
 
-    const searchTerm = e.target.value.toLowerCase();
+    const searchTerm = e.target.value.toLowerCase().trim(); // Eliminar espacios en blanco y convertir a minúsculas
+
+    if (searchTerm.length === 0) {
+        // Si el campo de búsqueda está vacío, limpiar marcadores
+        mostrarLugares([]);
+        return;
+    }
+
     const lugaresFiltered = lugares.filter(lugar => {
         const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
         const distancia = userPosition.distanceTo(lugarLatLng);
-        return distancia <= 5000 && lugar.nombre.toLowerCase().includes(searchTerm);
+
+        // Buscar coincidencias en nombre o dirección
+        const matchNombre = lugar.nombre.toLowerCase().includes(searchTerm);
+        const matchDireccion = lugar.direccion.toLowerCase().includes(searchTerm);
+
+        return distancia <= 5000 && (matchNombre || matchDireccion); // Filtrar por distancia y coincidencia
     });
 
-    mostrarLugares(lugaresFiltered);
+    if (lugaresFiltered.length > 0) {
+        // Mostrar los lugares filtrados
+        mostrarLugares(lugaresFiltered);
+
+        // Centrar el mapa en el primer lugar encontrado
+        const primerLugar = lugaresFiltered[0];
+        const primerLugarLatLng = L.latLng(primerLugar.latitud, primerLugar.longitud);
+        map.setView(primerLugarLatLng, 15); // Zoom al nivel 15 para ver mejor el lugar
+    } else {
+        // Limpiar marcadores si no hay resultados
+        mostrarLugares([]);
+        console.log("No se encontraron resultados para:", searchTerm);
+    }
 });
 
 // Filtrar lugares por etiquetas
