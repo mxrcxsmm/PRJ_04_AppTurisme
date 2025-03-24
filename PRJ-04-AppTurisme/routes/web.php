@@ -8,6 +8,15 @@ use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\GimcanaController;
 use App\Http\Controllers\AuthController;
 
+
+Route::get('/', function () {
+    return redirect('/login');
+});
+
+Route::get('/inicio', function () {
+    return view('inicio');
+})->middleware('auth')->name('inicio');
+
 // Grupo de rutas para administración
 // Asumiendo que tienes un middleware "auth" y/o un middleware de rol "admin" configurado
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function() {
@@ -23,6 +32,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function() {
 
     // CRUD de Gimcanas
     Route::resource('gimcanas', GimcanaController::class);
+
+    Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('inicio', [UserController::class, 'index'])->name('inicio');
+    Route::get('/api/users', [UserController::class, 'getUsers']);
+
 });
 
 // Ruta pública (o interna) para mostrar el mapa con todos los lugares
@@ -39,3 +53,10 @@ Route::post('/lugares/{lugar}/favorito', [FavoritoController::class, 'toggle'])
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+
+// API para lugares
+Route::get('/api/lugares', [LugarController::class, 'index']);
+Route::get('/api/lugares/buscar', [LugarController::class, 'buscar']);

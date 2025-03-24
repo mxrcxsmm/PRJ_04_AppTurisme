@@ -47,28 +47,18 @@ class LugarController extends Controller
         $markerPath = 'markers/default.png'; // Valor por defecto
         if ($request->hasFile('marker')) {
             $file = $request->file('marker');
-            // Generamos un nombre único (hash) para evitar colisiones
             $filename = $file->hashName(); 
-            
-            // Definimos la ruta física donde se guardará
             $destinationPath = public_path('markers');
-            
-            // Si la carpeta no existe, la creamos
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
             }
-
-            // Movemos el archivo a la carpeta public/markers
             $file->move($destinationPath, $filename);
-
-            // Guardamos en la BD solo la parte "markers/nombreArchivo.png"
             $markerPath = 'markers/' . $filename;
         }
 
         try {
             DB::beginTransaction();
 
-            // Creamos el lugar
             $lugar = Lugar::create([
                 'nombre'      => $request->nombre,
                 'descripcion' => $request->descripcion,
@@ -78,7 +68,6 @@ class LugarController extends Controller
                 'marker'      => $markerPath,
             ]);
 
-            // Sincronizamos etiquetas (tabla pivote lugar_etiqueta)
             if ($request->has('etiquetas')) {
                 $lugar->etiquetas()->sync($request->etiquetas);
             }
@@ -89,9 +78,7 @@ class LugarController extends Controller
                              ->with('success', 'Lugar creado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            // Opcional: Si quieres revertir la subida de archivo al fallar la transacción,
-            // podrías eliminar el archivo recién subido aquí.
-
+            // Opcional: eliminar el archivo subido en caso de error
             return redirect()->route('admin.lugares.index')
                              ->with('error', 'Ocurrió un error al crear el lugar.');
         }
@@ -123,18 +110,14 @@ class LugarController extends Controller
             'etiquetas.*' => 'exists:etiquetas,id'
         ]);
 
-        // Si se sube un nuevo icono, lo movemos fuera de la transacción, 
-        // pero si deseas revertirlo en caso de error, deberías manejarlo en el catch.
         $nuevoMarkerPath = null;
         if ($request->hasFile('marker')) {
-            // Borrar el archivo anterior si no es el default
             if ($lugare->marker && $lugare->marker !== 'markers/default.png') {
                 $oldPath = public_path($lugare->marker);
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
             }
-
             $file = $request->file('marker');
             $filename = $file->hashName();
             $destinationPath = public_path('markers');
@@ -142,14 +125,12 @@ class LugarController extends Controller
                 mkdir($destinationPath, 0755, true);
             }
             $file->move($destinationPath, $filename);
-
             $nuevoMarkerPath = 'markers/' . $filename;
         }
 
         try {
             DB::beginTransaction();
 
-            // Actualizamos campos en la base de datos
             if ($nuevoMarkerPath) {
                 $lugare->marker = $nuevoMarkerPath;
             }
@@ -160,7 +141,6 @@ class LugarController extends Controller
             $lugare->longitud    = $request->longitud;
             $lugare->save();
 
-            // Etiquetas (tabla pivote lugar_etiqueta)
             if ($request->has('etiquetas')) {
                 $lugare->etiquetas()->sync($request->etiquetas);
             } else {
@@ -173,11 +153,7 @@ class LugarController extends Controller
                              ->with('success', 'Lugar actualizado correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            // Si deseas revertir el archivo subido, podrías eliminarlo aquí:
-            // if ($nuevoMarkerPath && file_exists(public_path($nuevoMarkerPath))) {
-            //     unlink(public_path($nuevoMarkerPath));
-            // }
-
+            // Opcional: eliminar el archivo nuevo si falla
             return redirect()->route('admin.lugares.index')
                              ->with('error', 'Ocurrió un error al actualizar el lugar.');
         }
@@ -188,13 +164,9 @@ class LugarController extends Controller
      */
     public function destroy(Lugar $lugare)
     {
-        // Podemos envolverlo en transacción porque se elimina el registro en 'lugares'
-        // y sus relaciones en la tabla pivote 'lugar_etiqueta'.
-        // Además, se elimina el archivo físico si no es el default.
         try {
             DB::beginTransaction();
 
-            // Eliminamos su icono del servidor si no es el default
             if ($lugare->marker && $lugare->marker !== 'markers/default.png') {
                 $oldPath = public_path($lugare->marker);
                 if (file_exists($oldPath)) {
@@ -202,8 +174,6 @@ class LugarController extends Controller
                 }
             }
 
-            // Eliminar el lugar (Eloquent se encarga de la pivote si la relación
-            // está definida con onDelete cascade o manualmente).
             $lugare->delete();
 
             DB::commit();
@@ -225,7 +195,6 @@ class LugarController extends Controller
     {
         $query = Lugar::with('etiquetas');
 
-        // Filtro por etiqueta
         if ($request->has('etiqueta') && !empty($request->etiqueta)) {
             $etiquetaId = $request->etiqueta;
             $query->whereHas('etiquetas', function($q) use ($etiquetaId) {
@@ -234,6 +203,22 @@ class LugarController extends Controller
         }
 
         $lugares = $query->get();
+        return response()->json($lugares);
+    }
+
+    /**
+     * Método API: Buscar lugares por término (nombre o descripción).
+     */
+    public function buscar(Request $request)
+    {
+        $query = $request->input('q');
+        if (empty($query)) {
+            return response()->json([]);
+        }
+
+        $lugares = Lugar::where('nombre', 'LIKE', "%{$query}%")
+                        ->orWhere('descripcion', 'LIKE', "%{$query}%")
+                        ->get();
         return response()->json($lugares);
     }
 
