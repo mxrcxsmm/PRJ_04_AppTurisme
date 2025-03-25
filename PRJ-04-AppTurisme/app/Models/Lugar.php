@@ -30,4 +30,9 @@ class Lugar extends Model
     {
         return $this->hasMany(PuntoControl::class, 'lugar_id');
     }
+
+        public function lugar()
+    {
+        return $this->belongsTo(Lugar::class, 'lugar_id');
+    }
 }

@@ -9,27 +9,36 @@
     <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
 
     <title>Gimcana</title>   
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+    <title>Inicio</title>
 </head>
 <body>
+    <div class="hamburger-menu" onclick="toggleMenu()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
     <div class="cabezera-container">
         <div class="cabezera">
             <div class="search-container">
                 <input type="text" class="search-box" id="searchBox" placeholder="Buscar localizaciones">
             </div>
-            <div class="filter-buttons">
-                <button class="filter-button" data-icon="❤️">Favoritos</button>
-                <button class="filter-button" data-icon="🍴">Restaurantes</button>
-                <button class="filter-button" data-icon="🛒">Tiendas</button>
-                <button class="filter-button" data-icon="➕">Más</button>
-                <button class="filter-button" data-icon="🏠">Inicio</button>
+                <div class="filter-buttons">
+                    <button class="filter-button" data-etiqueta="Restaurante">Restaurantes</button>
+                    <button class="filter-button" data-etiqueta="Museo">Museos</button>
+                    <button class="filter-button" data-etiqueta="Tienda">Tiendas</button>
+                    <button class="filter-button" data-etiqueta="Parque">Parques</button>
+                    <button class="filter-button" data-etiqueta="Bar">Bares</button>
                 <form action="{{ route('logout') }}" method="POST" class="logout-form">
                     @csrf
                     <button type="submit" class="button-logout">Cerrar sesión</button>
                 </form>
-            </div>
+                </div>
         </div>
     </div>
-    
 
     <div id="map"></div>
     <div id="infoPanel" class="info-panel">
@@ -40,13 +49,12 @@
         <button id="controlPointButton" class="control-button">PUNTO DE CONTROL 1</button>
     </div>
     @if(!$grupo)
-    <button class="play-button" onclick="openLobby()">Jugar Gimcana</button>
-    
-    <!-- Modal Lobby -->
-    <div id="lobbyModal" class="modal">
-        <div class="modal-content">
-            <div class="timer-bar" id="timerBar"></div>
-            <div class="lobby-header">
+        <button class="play-button" onclick="openLobby()">Jugar Gincana</button>
+        
+        <!-- Modal Lobby -->
+        <div id="lobbyModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeLobby()">&times;</span>
                 <h2>Lobby de Jugadores</h2>
                 <p class="grupo-count">Grupos: <span id="grupoCount">0</span>/7</p>
             </div>
@@ -72,6 +80,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{{ asset('js/mapa.js') }}"></script>
     <script>
     //     let lobbyTimer;
     // let grupos = [];
@@ -181,7 +190,7 @@
     //         document.getElementById('pistaModal').style.display = 'block';
     //     });
     // @endif
+
     </script>
-    <script src="{{ asset('js/mapa.js') }}"></script>
 </body>
 </html>
