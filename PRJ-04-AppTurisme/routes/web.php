@@ -70,7 +70,7 @@ Route::get('/api/lugares', [LugarController::class, 'apiIndex']);
 Route::get('/api/lugares/buscar', [LugarController::class, 'buscar']);
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    // Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('inicio', [UserController::class, 'index'])->name('inicio');
     Route::get('/api/users', [UserController::class, 'getUsers']);
     Route::get('/api/grupos', [UserController::class, 'getGrupos']);
