@@ -85,7 +85,7 @@ function mostrarLugares(lugaresArray) {
     marcadores = [];
 
     lugaresArray.forEach(lugar => {
-        const markerIcon = lugar.marker ? `/img/${lugar.marker}` : '/img/user-marker.png';
+        const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/user-marker.png';
 
         const marker = L.marker([lugar.latitud, lugar.longitud], {
             icon: L.icon({
@@ -126,10 +126,16 @@ document.getElementById('searchBox').addEventListener('input', (e) => {
         const matchNombre = lugar.nombre.toLowerCase().includes(searchTerm);
         const matchDireccion = lugar.direccion.toLowerCase().includes(searchTerm);
 
-        return distancia <= 5000 && (matchNombre || matchDireccion); // Filtrar por distancia y coincidencia
+        return matchNombre || matchDireccion; // No filtramos por distancia
     });
 
     if (lugaresFiltered.length > 0) {
+        // Asignar distancia a cada lugar filtrado
+        lugaresFiltered.forEach(lugar => {
+            const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+            lugar.distancia = userPosition.distanceTo(lugarLatLng);
+        });
+
         // Mostrar los lugares filtrados
         mostrarLugares(lugaresFiltered);
 
