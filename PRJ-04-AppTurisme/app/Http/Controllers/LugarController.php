@@ -17,7 +17,11 @@ class LugarController extends Controller
         $lugares = Lugar::with('etiquetas')->orderBy('id', 'desc')->get();
         return view('admin.lugares.index', compact('lugares'));
     }
-
+    public function apiIndex()
+    {
+        $lugares = Lugar::with('etiquetas')->orderBy('id', 'desc')->get();
+        return response()->json($lugares);
+    }
     /**
      * Formulario para crear un nuevo lugar.
      */
