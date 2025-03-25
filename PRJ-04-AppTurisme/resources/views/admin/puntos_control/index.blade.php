@@ -27,13 +27,10 @@
             <td>{{ $p->prueba }}</td>
             <td>
                 <a href="{{ route('admin.puntos-control.edit', $p->id) }}" class="btn btn-sm btn-warning">Editar</a>
-                <form action="{{ route('admin.puntos-control.destroy', $p->id) }}" method="POST" style="display:inline-block;">
+                <form action="{{ route('admin.puntos-control.destroy', $p->id) }}" method="POST" class="delete-form" style="display:inline-block;">
                     @csrf
                     @method('DELETE')
-                    <button class="btn btn-sm btn-danger"
-                            onclick="return confirm('¿Eliminar este punto de control?')">
-                        Eliminar
-                    </button>
+                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                 </form>
             </td>
         </tr>

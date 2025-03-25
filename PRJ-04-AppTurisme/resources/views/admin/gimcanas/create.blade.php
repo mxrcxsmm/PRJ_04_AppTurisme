@@ -42,9 +42,3 @@
         <a href="{{ route('admin.gimcanas.index') }}" class="btn btn-secondary">Volver</a>
     </form>
 @endsection
-
-@section('scripts')
-<!-- Incluir SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{asset('js/script.js')}}"></script>
-@endsection
