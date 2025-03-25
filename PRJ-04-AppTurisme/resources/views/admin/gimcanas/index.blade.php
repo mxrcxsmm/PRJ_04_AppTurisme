@@ -32,10 +32,10 @@
                 </td>
                 <td>
                     <a href="{{ route('admin.gimcanas.edit', $gimcana->id) }}" class="btn btn-sm btn-warning">Editar</a>
-                    <form action="{{ route('admin.gimcanas.destroy', $gimcana->id) }}" method="POST" style="display:inline-block;">
+                    <form action="{{ route('admin.gimcanas.destroy', $gimcana->id) }}" method="POST" class="delete-form" style="display:inline-block;">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que deseas eliminar esta gimcana?')">Eliminar</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                     </form>
                 </td>
             </tr>
