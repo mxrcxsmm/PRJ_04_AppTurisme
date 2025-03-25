@@ -107,4 +107,17 @@ class GimcanaController extends Controller
         return redirect()->route('admin.gimcanas.index')
             ->with('success', 'Gimcana eliminada correctamente.');
     }
+
+    /**
+     * Devuelve una lista de todas las gimcanas en formato JSON.
+     */
+    public function listJson()
+    {
+        try {
+            $gimcanas = Gimcana::orderBy('id', 'desc')->get(); // Obtener todas las gimcanas
+            return response()->json($gimcanas, 200); // Respuesta en formato JSON
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener las gimcanas'], 500);
+        }
+    }
 }
