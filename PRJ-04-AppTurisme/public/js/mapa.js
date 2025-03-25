@@ -25,7 +25,7 @@ function locateUser() {
                 userMarker = L.marker(userPosition, {
                     icon: L.icon({
                         iconUrl: '/img/user-marker.png',
-                        iconSize: [32, 32]
+                        iconSize: [22, 32]
                     })
                 }).addTo(map);
             } else {
@@ -73,9 +73,53 @@ function cargarLugaresCercanos() {
         });
 }
 
-// Mostrar lugares en el mapa
+function mostrarInfoLugar(lugar) {
+    // 1️⃣ Título del lugar
+    document.getElementById('infoTitle').textContent = lugar.nombre;
+
+    // 2️⃣ Categorías (Discoteca, Ocio, Museo, etc.)
+    const categoriesDiv = document.getElementById('infoCategories');
+    categoriesDiv.innerHTML = ''; // Limpiar antes de agregar nuevas categorías
+
+    lugar.categorias.forEach(cat => {
+        const button = document.createElement('button');
+        button.textContent = cat.nombre;
+        button.style.backgroundColor = cat.color;
+        button.classList.add('category-button'); // Agregamos una clase para el diseño
+        categoriesDiv.appendChild(button);
+    });
+
+    // 3️⃣ Imágenes del lugar
+    const imagesDiv = document.getElementById('infoImages');
+    imagesDiv.innerHTML = ''; // Limpiar antes de agregar nuevas imágenes
+
+    lugar.imagenes.forEach(img => {
+        const imgElement = document.createElement('img');
+        imgElement.src = img.url;
+        imgElement.classList.add('info-image'); // Agregamos una clase para el diseño
+        imagesDiv.appendChild(imgElement);
+    });
+
+    // 4️⃣ Descripción del lugar
+    document.getElementById('infoDescription').textContent = lugar.descripcion;
+
+    // 5️⃣ Botón de Punto de Control
+    const controlButton = document.createElement('button');
+    controlButton.textContent = `PUNTO DE CONTROL ${lugar.id}`;
+    controlButton.classList.add('control-button');
+    controlButton.onclick = () => {
+        alert(`Has activado el Punto de Control ${lugar.id}`);
+    };
+
+    const controlDiv = document.getElementById('infoControl');
+    controlDiv.innerHTML = ''; // Limpiar antes de agregar
+    controlDiv.appendChild(controlButton);
+
+    // 6️⃣ Mostrar el panel de información
+    document.getElementById('infoPanel').style.display = 'block';
+}
+
 function mostrarLugares(lugaresArray) {
-    // Limpiar marcadores existentes
     marcadores.forEach(marker => map.removeLayer(marker));
     marcadores = [];
 
@@ -89,17 +133,13 @@ function mostrarLugares(lugaresArray) {
             })
         });
 
-        marker.bindPopup(`
-            <h3>${lugar.nombre}</h3>
-            <p>${lugar.descripcion}</p>
-            <p>${lugar.direccion}</p>
-            <p>Distancia: ${Math.round(lugar.distancia)}m</p>
-        `);
+        marker.on('click', () => mostrarInfoLugar(lugar)); // Evento click
 
         marker.addTo(map);
         marcadores.push(marker);
     });
 }
+
 
 // Búsqueda de lugares
 document.getElementById('searchBox').addEventListener('input', (e) => {

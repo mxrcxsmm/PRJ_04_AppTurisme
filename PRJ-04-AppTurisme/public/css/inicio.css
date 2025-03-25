@@ -235,3 +235,72 @@ body {
     color: #6c757d;
     margin: 10px 0;
 }
+
+.info-panel {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff8a0;
+    padding: 20px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0px -4px 10px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.categories button {
+    margin: 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.image-gallery img {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.control-button {
+    background-color: blue;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+/* Estilos de las categorías */
+.category-button {
+    padding: 8px 12px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+/* Estilos de las imágenes */
+.info-image {
+    width: 100px; /* Ajusta el tamaño según el diseño */
+    height: 80px;
+    border-radius: 8px;
+    margin: 5px;
+}
+
+/* Estilos del botón de punto de control */
+.control-button {
+    background-color: blue;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}

@@ -9,7 +9,7 @@ class LugarController extends Controller
 {
     public function index()
     {
-        return Lugar::with('etiquetas')->get();
+        $lugares = Lugar::with('etiquetas')->get();
 
         return response()->json($lugares);
     }

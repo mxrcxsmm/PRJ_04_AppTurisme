@@ -32,7 +32,13 @@
     
 
     <div id="map"></div>
-
+    <div id="infoPanel" class="info-panel">
+        <h2 id="infoTitle">INFO</h2>
+        <div id="infoCategories" class="categories"></div>
+        <div id="infoImages" class="image-gallery"></div>
+        <p id="infoDescription"></p>
+        <button id="controlPointButton" class="control-button">PUNTO DE CONTROL 1</button>
+    </div>
     @if(!$grupo)
     <button class="play-button" onclick="openLobby()">Jugar Gimcana</button>
     
@@ -67,114 +73,114 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        let lobbyTimer;
-    let grupos = [];
+    //     let lobbyTimer;
+    // let grupos = [];
 
-    function openLobby() {
-        document.getElementById('lobbyModal').style.display = 'block';
-        startLobbyTimer();
-        loadGrupos();
-    }
+    // function openLobby() {
+    //     document.getElementById('lobbyModal').style.display = 'block';
+    //     startLobbyTimer();
+    //     loadGrupos();
+    // }
 
-    function startLobbyTimer() {
-        const timerBar = document.getElementById('timerBar');
-        timerBar.style.width = '100%';
+    // function startLobbyTimer() {
+    //     const timerBar = document.getElementById('timerBar');
+    //     timerBar.style.width = '100%';
         
-        setTimeout(() => {
-            timerBar.style.width = '0%';
-        }, 100);
+    //     setTimeout(() => {
+    //         timerBar.style.width = '0%';
+    //     }, 100);
 
-        lobbyTimer = setTimeout(() => {
-            startGimcana();
-        }, 60000); // 1 minuto
-    }
+    //     lobbyTimer = setTimeout(() => {
+    //         startGimcana();
+    //     }, 60000); // 1 minuto
+    // }
 
-    async function loadGrupos() {
-        try {
-            const response = await fetch('/api/grupos', {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            });
-            grupos = await response.json();
-            updateGruposView();
+    // async function loadGrupos() {
+    //     try {
+    //         const response = await fetch('/api/grupos', {
+    //             headers: {
+    //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    //             }
+    //         });
+    //         grupos = await response.json();
+    //         updateGruposView();
             
-            if (grupos.length >= 7) {
-                startGimcana();
-            }
-        } catch (error) {
-            console.error('Error cargando grupos:', error);
-        }
-    }
+    //         if (grupos.length >= 7) {
+    //             startGimcana();
+    //         }
+    //     } catch (error) {
+    //         console.error('Error cargando grupos:', error);
+    //     }
+    // }
 
-    function updateGruposView() {
-        const gruposList = document.getElementById('gruposList');
-        const grupoCount = document.getElementById('grupoCount');
+    // function updateGruposView() {
+    //     const gruposList = document.getElementById('gruposList');
+    //     const grupoCount = document.getElementById('grupoCount');
         
-        grupoCount.textContent = grupos.length;
+    //     grupoCount.textContent = grupos.length;
         
-        gruposList.innerHTML = grupos.map(grupo => {
-            const emptySlots = 4 - grupo.usuarios.length;
-            const playerSlots = [
-                ...grupo.usuarios.map(user => `
-                    <div class="player-slot">${user.name}</div>
-                `),
-                ...Array(emptySlots).fill(`
-                    <div class="player-slot empty">Vacío</div>
-                `)
-            ].join('');
+    //     gruposList.innerHTML = grupos.map(grupo => {
+    //         const emptySlots = 4 - grupo.usuarios.length;
+    //         const playerSlots = [
+    //             ...grupo.usuarios.map(user => `
+    //                 <div class="player-slot">${user.name}</div>
+    //             `),
+    //             ...Array(emptySlots).fill(`
+    //                 <div class="player-slot empty">Vacío</div>
+    //             `)
+    //         ].join('');
 
-            return `
-                <div class="grupo-card">
-                    <h3>Grupo ${grupo.id}</h3>
-                    <div class="grupo-players">
-                        ${playerSlots}
-                    </div>
-                    ${emptySlots > 0 ? `
-                        <button class="join-button" onclick="joinGrupo(${grupo.id})">
-                            Unirse al grupo
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-    }
+    //         return `
+    //             <div class="grupo-card">
+    //                 <h3>Grupo ${grupo.id}</h3>
+    //                 <div class="grupo-players">
+    //                     ${playerSlots}
+    //                 </div>
+    //                 ${emptySlots > 0 ? `
+    //                     <button class="join-button" onclick="joinGrupo(${grupo.id})">
+    //                         Unirse al grupo
+    //                     </button>
+    //                 ` : ''}
+    //             </div>
+    //         `;
+    //     }).join('');
+    // }
 
-    async function joinGrupo(grupoId) {
-        try {
-            const response = await fetch('/api/grupos/join', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ grupo_id: grupoId })
-            });
+    // async function joinGrupo(grupoId) {
+    //     try {
+    //         const response = await fetch('/api/grupos/join', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    //             },
+    //             body: JSON.stringify({ grupo_id: grupoId })
+    //         });
 
-            if (response.ok) {
-                location.reload(); // Recargar para mostrar la vista de grupo
-            } else {
-                console.error('Error al unirse al grupo');
-            }
-        } catch (error) {
-            console.error('Error uniéndose al grupo:', error);
-        }
-    }
+    //         if (response.ok) {
+    //             location.reload(); // Recargar para mostrar la vista de grupo
+    //         } else {
+    //             console.error('Error al unirse al grupo');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error uniéndose al grupo:', error);
+    //     }
+    // }
 
-    function startGimcana() {
-        clearTimeout(lobbyTimer);
-        location.reload();
-    }
+    // function startGimcana() {
+    //     clearTimeout(lobbyTimer);
+    //     location.reload();
+    // }
 
-    // Actualizar grupos cada 5 segundos
-    setInterval(loadGrupos, 5000);
+    // // Actualizar grupos cada 5 segundos
+    // setInterval(loadGrupos, 5000);
 
-    // Si el usuario está en un grupo, mostrar la pista inicial
-    @if($grupo)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('pistaModal').style.display = 'block';
-        });
-    @endif
+    // // Si el usuario está en un grupo, mostrar la pista inicial
+    // @if($grupo)
+    //     document.addEventListener('DOMContentLoaded', function() {
+    //         document.getElementById('pistaModal').style.display = 'block';
+    //     });
+    // @endif
     </script>
     <script src="{{ asset('js/mapa.js') }}"></script>
 </body>
