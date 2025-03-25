@@ -10,7 +10,11 @@
            <li class="nav-item"><a class="nav-link" href="{{ route('admin.etiquetas.index') }}">Etiquetas</a></li>
            <li class="nav-item"><a class="nav-link" href="{{ route('admin.puntos-control.index') }}">Puntos Control</a></li>
            <li class="nav-item"><a class="nav-link" href="{{ route('admin.gimcanas.index') }}">Gincana</a></li>
-           <li class="nav-item"><a class="nav-link" href="{{ route('map') }}">Ver Mapa</a></li>
+           <li class="nav-item"><a class="nav-link" href="{{ route('map') }}">Ver Mapa</a></li>           
+           <form action="{{ route('logout') }}" method="POST" class="logout-form">
+            @csrf
+            <button type="submit" class="button-logout">Cerrar sesión</button>
+        </form>
        </ul>
     </div>
 </nav>
