@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
-
-    <title>Gimcana</title>   
-
+    <title>Gincana</title>   
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Inicio</title>
 </head>
 <body>
@@ -50,9 +50,32 @@
             <div class="modal-content">
                 <span class="close" onclick="closeLobby()">&times;</span>
                 <h2>Lobby de Jugadores</h2>
+                <div class="lobby-options">
+                    <button class="btn btn-primary" onclick="createGroup()">Crear Grupo</button>
+                    <button class="btn btn-secondary" onclick="showJoinGroup()">Unirse a Grupo</button>
+                </div>
+                <div id="createGroupSection" style="display: none;">
+                    <h3>Tu código de grupo:</h3>
+                    <p id="groupCode" class="group-code"></p>
+                    <p>Comparte este código con tus amigos para que se unan al grupo.</p>
+                </div>
+                <div id="joinGroupSection" style="display: none;">
+                    <h3>Unirse a un grupo</h3>
+                    <input type="text" id="joinGroupCode" placeholder="Introduce el código del grupo" class="form-control">
+                    <button class="btn btn-success" onclick="joinGroup()">Unirse</button>
+                </div>
                 <div class="users-list" id="usersList">
                     <!-- Los usuarios se cargarán aquí dinámicamente -->
                 </div>
+                <br>
+                <div id="gincanasList">
+                    <h3>Gincanas disponibles:</h3>
+                    <ul id="gincanasUl">
+                        <!-- Las gincanas se cargarán aquí dinámicamente -->
+                    </ul>
+                </div>
+                <br>
+                <button class="btn btn-success" id="startGincanaButton" onclick="startGincana()" disabled>Iniciar Gincana</button>
             </div>
         </div>
     @else
@@ -73,47 +96,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{ asset('js/mapa.js') }}"></script>
-    <script>
-        // Configurar CSRF token
-        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Funciones para el lobby
-        function openLobby() {
-            document.getElementById('lobbyModal').style.display = 'block';
-            loadUsers();
-        }
-
-        function closeLobby() {
-            document.getElementById('lobbyModal').style.display = 'none';
-        }
-
-        async function loadUsers() {
-            try {
-                const response = await axios.get('/api/users');
-                const usersList = document.getElementById('usersList');
-                usersList.innerHTML = response.data.map(user => `
-                    <div class="user-item">
-                        <span>${user.name}</span>
-                        <button onclick="inviteUser(${user.id})">Invitar</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error cargando usuarios:', error);
-            }
-        }
-
-        // Si el usuario está en un grupo, mostrar la pista inicial
-        @if($grupo)
-            document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('pistaModal').style.display = 'block';
-            });
-        @endif
-
-        // Función para mostrar/ocultar el menú en dispositivos móviles
-        function toggleMenu() {
-            const cabezeraContainer = document.querySelector('.cabezera-container');
-            cabezeraContainer.classList.toggle('active');
-        }
-    </script>
+    <script src="{{ asset('js/gincana.js') }}"></script>
 </body>
 </html>
