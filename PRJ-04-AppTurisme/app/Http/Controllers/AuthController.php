@@ -14,7 +14,7 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        return view('auth.login'); // Asegúrate de que esta vista exista o cámbiala por 'login'
+        return view('login'); // Asegúrate de que esta vista exista o cámbiala por 'login'
     }
 
     /**
@@ -38,7 +38,7 @@ class AuthController extends Controller
             $user = Auth::user();
             // Redirigir según el rol
             if ($user->role_id == 1) {
-                return redirect()->intended('admin/dashboard')
+                return redirect()->intended('admin/lugares')
                     ->with('success', 'Has iniciado sesión correctamente.');
             } else {
                 return redirect()->intended('inicio/')
