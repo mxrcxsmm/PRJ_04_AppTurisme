@@ -5,6 +5,7 @@ let lugares = [];
 let marcadores = [];
 let userPosition = null;
 let activeFilter = null;
+let userCircle = null; // Círculo alrededor del usuario
 
 // Configurar capa de mapa
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -31,8 +32,17 @@ function locateUser() {
                         iconSize: [12, 12]
                     })
                 }).addTo(map);
+
+                // Crear un círculo alrededor del usuario con un radio de 400 metros
+                userCircle = L.circle(userPosition, {
+                    color: 'blue',
+                    fillColor: '#add8e6',
+                    fillOpacity: 0.3,
+                    radius: 400 // Radio en metros
+                }).addTo(map);
             } else {
                 userMarker.setLatLng(userPosition);
+                userCircle.setLatLng(userPosition); // Actualizar la posición del círculo
             }
 
             map.setView(userPosition);
@@ -59,12 +69,12 @@ function cargarLugaresCercanos() {
         .then(data => {
             lugares = data;
 
-            // Filtrar lugares cercanos (5 kilómetros de distancia)
+            // Filtrar lugares cercanos (400 metros de distancia)
             const lugaresCercanos = lugares.filter(lugar => {
                 const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
                 const distancia = userPosition.distanceTo(lugarLatLng);
                 lugar.distancia = distancia; // Guardamos la distancia para mostrarla
-                return distancia <= 5000;
+                return distancia <= 400; // Filtrar lugares dentro de 400 metros
             });
 
             // Mostrar los lugares cercanos
