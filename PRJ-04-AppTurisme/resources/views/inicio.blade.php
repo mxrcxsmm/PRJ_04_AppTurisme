@@ -48,6 +48,7 @@
         <div id="infoImages" class="image-gallery"></div>
         <p id="infoDescription"></p>
         <button id="controlPointButton" class="control-button">PUNTO DE CONTROL 1</button>
+        <button class="control-button" id="verRutaBtn">Ver Ruta</button>
     </div>
     @if(!$grupo)
         <button class="play-button" onclick="openLobby()">Jugar Gincana</button>

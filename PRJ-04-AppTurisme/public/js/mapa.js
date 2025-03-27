@@ -172,10 +172,15 @@ async function mostrarLugares(lugaresArray) {
                     <p>${lugar.descripcion}</p>
                     <p class="text-muted">${lugar.direccion}</p>
                     <p>Distancia: ${Math.round(lugar.distancia)} metros</p>
+                    <div class="row">
                     <button class="btn-favorito ${esFavorito ? 'active' : ''}" 
                             data-lugar-id="${lugar.id}">
                         ${esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
                     </button>
+                    <button class="btn-favorito" id="verRuta">
+                        Ver Ruta
+                    </button>
+                    </div>
                 </div>
             `;
 
@@ -184,8 +189,9 @@ async function mostrarLugares(lugaresArray) {
                 minWidth: 200,
                 className: 'custom-popup'
             });
-
+            
             marker.on('popupopen', function() {
+                calcularRuta([lugar.latitud, lugar.longitud]);
                 const popup = this.getPopup();
                 const btn = popup._contentNode.querySelector('.btn-favorito');
                 if (btn) {
@@ -257,6 +263,47 @@ async function mostrarLugares(lugaresArray) {
         });
     }
 }
+let rutaLayer;
+
+// Función para cerrar el panel
+function cerrarPanel() {
+    document.getElementById('infoPanel').classList.remove('open');
+    document.querySelector('.filter-buttons').style.display = 'flex';
+    if (rutaLayer) {
+        map.removeLayer(rutaLayer);
+    }
+}
+async function calcularRuta(destino) {
+    if (rutaLayer) {
+        map.removeLayer(rutaLayer);
+    }
+
+    navigator.geolocation.getCurrentPosition(async function (position) {
+        const inicio = [position.coords.latitude, position.coords.longitude];
+        const url = `https://router.project-osrm.org/route/v1/foot/${inicio[1]},${inicio[0]};${destino[1]},${destino[0]}?overview=full&geometries=geojson`;
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const route = data.routes[0].geometry;
+            
+            rutaLayer = L.geoJSON(route, {
+                style: { color: 'blue', weight: 4 }
+            }).addTo(map);
+            
+            map.fitBounds(L.geoJSON(route).getBounds());
+        } catch (error) {
+            console.error('Error al calcular la ruta:', error);
+        }
+    }, function () {
+        Swal.fire({
+            icon: 'error',
+            title: 'Ubicación no disponible',
+            text: 'No se pudo obtener la ubicación del usuario.'
+        });
+    });
+}
+
 
 // Event listeners
 document.addEventListener('click', async(e) => {
