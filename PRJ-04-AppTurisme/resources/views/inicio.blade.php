@@ -32,6 +32,7 @@
                     <button class="filter-button" data-etiqueta="Tienda">Tiendas</button>
                     <button class="filter-button" data-etiqueta="Parque">Parques</button>
                     <button class="filter-button" data-etiqueta="Bar">Bares</button>
+                    <button class="filter-button" data-etiqueta="Favoritos">Favoritos</button>
                 <form action="{{ route('logout') }}" method="POST" class="logout-form">
                     @csrf
                     <button type="submit" class="button-logout">Cerrar sesión</button>
@@ -92,9 +93,9 @@
         </div>
     @endif
 
-    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('js/mapa.js') }}"></script>
     <script src="{{ asset('js/gincana.js') }}"></script>
 </body>
