@@ -193,6 +193,91 @@ body {
     z-index: 1000;
 }
 
+.popup-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-ruta {
+    background-color: #4a89dc;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.btn-ruta:hover {
+    background-color: #3a70c2;
+}
+
+.btn-eliminar-ruta {
+    background-color: #dc4a4a;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+
+/* Estilo para el panel de instrucciones de ruta */
+
+.leaflet-routing-container {
+    position: fixed;
+    top: 180px;
+    /* Ajusta según la altura de tu cabecera */
+    left: 80%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    max-height: 200px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    font-size: 14px;
+    z-index: 1001;
+    /* Mayor que la cabecera (1000) pero menor que los popups */
+    margin-top: 10px;
+}
+
+
+/* Opcional: Estilo para las instrucciones de ruta */
+
+.leaflet-routing-container h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.leaflet-routing-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaflet-routing-container table tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.leaflet-routing-container table td {
+    padding: 5px;
+    vertical-align: top;
+}
+
+.leaflet-routing-container table td:first-child {
+    width: 30px;
+    text-align: center;
+    color: #4a89dc;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -317,5 +402,11 @@ body {
         /* Comienza desde el lado izquierdo */
         z-index: 1;
         /* Asegura que el mapa esté detrás de la cabecera */
+    }
+    .leaflet-routing-container {
+        top: 100px;
+        width: 85%;
+        max-height: 150px;
+        font-size: 12px;
     }
 }
