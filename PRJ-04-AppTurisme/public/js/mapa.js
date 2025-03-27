@@ -109,11 +109,11 @@ function mostrarInfoLugar(lugar) {
     document.getElementById('infoDescription').textContent = lugar.descripcion;
 
     // 5️⃣ Botón de Punto de Control
-    const controlButton = document.createElement('button');
-    controlButton.textContent = `PUNTO DE CONTROL ${lugar.id}`;
-    controlButton.classList.add('control-button');
-    controlButton.onclick = () => {
-        alert(`Has activado el Punto de Control ${lugar.id}`);
+        const controlButton = document.createElement('button');
+        controlButton.textContent = `PUNTO DE CONTROL ${lugar.id}`;
+        controlButton.classList.add('control-button');
+        controlButton.onclick = () => {
+            alert(`Has activado el Punto de Control ${lugar.id}`);
     };
 
     const controlDiv = document.getElementById('infoControl');
@@ -129,7 +129,7 @@ function mostrarLugares(lugaresArray) {
     marcadores = [];
 
     lugaresArray.forEach(lugar => {
-        const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/user-marker.png';
+        const markerIcon = lugar.marker ? `/img/${lugar.marker}` : '/markers/user-marker.png';
 
         const marker = L.marker([lugar.latitud, lugar.longitud], {
             icon: L.icon({

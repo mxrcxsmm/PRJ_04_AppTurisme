@@ -35,7 +35,7 @@ class UserController extends Controller
 {
     return Grupo::with('usuarios')
         ->whereDoesntHave('usuarios', function($query) {
-            $query->where('id', auth()->id());
+            $query->where('id', Auth::id());
         })
         ->has('usuarios', '<', 4)
         ->get();
@@ -49,7 +49,7 @@ public function joinGrupo(Request $request)
         return response()->json(['error' => 'Grupo lleno'], 400);
     }
 
-    $user = auth()->user();
+    $user = Auth::user();
     $user->grupo_id = $grupo->id;
     $user->save();
 
