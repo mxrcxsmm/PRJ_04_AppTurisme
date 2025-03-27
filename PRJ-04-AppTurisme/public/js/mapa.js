@@ -5,7 +5,8 @@ let lugares = [];
 let marcadores = [];
 let userPosition = null;
 let activeFilter = null;
-let userCircle = null; // Círculo alrededor del usuario
+let favoritosUsuario = [];
+let userCircle = null;
 
 // Configurar capa de mapa
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -13,8 +14,8 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-// Configurar CSRF token para Axios
-axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+// Obtener token CSRF
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // Geolocalización del usuario
 function locateUser() {
@@ -22,7 +23,6 @@ function locateUser() {
         navigator.geolocation.watchPosition(position => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-
             userPosition = L.latLng(lat, lng);
 
             if (!userMarker) {
@@ -33,25 +33,39 @@ function locateUser() {
                     })
                 }).addTo(map);
 
-                // Crear un círculo alrededor del usuario con un radio de 400 metros
+                // Crear círculo de 400m alrededor del usuario
                 userCircle = L.circle(userPosition, {
                     color: 'blue',
                     fillColor: '#add8e6',
                     fillOpacity: 0.3,
-                    radius: 400 // Radio en metros
+                    radius: 400
                 }).addTo(map);
             } else {
                 userMarker.setLatLng(userPosition);
-                userCircle.setLatLng(userPosition); // Actualizar la posición del círculo
+                userCircle.setLatLng(userPosition);
             }
 
             map.setView(userPosition);
             cargarLugaresCercanos();
-        }, error => console.error("Error obteniendo la geolocalización:", error), {
+        }, error => {
+            console.error("Error obteniendo la geolocalización:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de geolocalización',
+                text: 'No se pudo obtener tu ubicación. Asegúrate de habilitar los permisos.',
+                timer: 3000
+            });
+        }, {
             enableHighAccuracy: true
         });
     } else {
         console.error("Geolocalización no está disponible en este navegador.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Geolocalización no disponible',
+            text: 'Tu navegador no soporta geolocalización',
+            timer: 3000
+        });
     }
 }
 
@@ -59,144 +73,334 @@ function locateUser() {
 function cargarLugaresCercanos() {
     if (!userPosition) return;
 
-    fetch('/api/lugares')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al cargar lugares');
-            }
-            return response.json();
-        })
-        .then(data => {
-            lugares = data;
+    const formdata = new FormData();
+    formdata.append('_token', csrfToken);
 
-            // Filtrar lugares cercanos (400 metros de distancia)
-            const lugaresCercanos = lugares.filter(lugar => {
-                const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-                const distancia = userPosition.distanceTo(lugarLatLng);
-                lugar.distancia = distancia; // Guardamos la distancia para mostrarla
-                return distancia <= 400; // Filtrar lugares dentro de 400 metros
-            });
+    fetch('/api/lugares', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        return response.json();
+    })
+    .then(data => {
+        lugares = data;
+        cargarFavoritos();
 
-            // Mostrar los lugares cercanos
-            mostrarLugares(lugaresCercanos);
-
-            // Centrar el mapa en la posición del usuario
-            map.setView(userPosition, 13); // Zoom al nivel 13 para ver mejor el área
-        })
-        .catch(error => {
-            console.error('Error al cargar lugares:', error);
+        const lugaresCercanos = lugares.filter(lugar => {
+            const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+            const distancia = userPosition.distanceTo(lugarLatLng);
+            lugar.distancia = distancia;
+            return distancia <= 400;
         });
+
+        if (activeFilter === 'Favoritos') {
+            filtrarPorFavoritos();
+        } else {
+            mostrarLugares(lugaresCercanos);
+        }
+
+        map.setView(userPosition, 15);
+    })
+    .catch(error => {
+        console.error('Error al cargar lugares:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los lugares',
+            timer: 2000
+        });
+    });
 }
 
-// Mostrar lugares en el mapa
+// Función para filtrar por favoritos
+function filtrarPorFavoritos() {
+    if (!userPosition) return;
+
+    if (favoritosUsuario.length === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Sin favoritos',
+            text: 'No tienes lugares marcados como favoritos',
+            timer: 2000
+        });
+        return;
+    }
+
+    const lugaresFavoritos = lugares.filter(lugar => {
+        const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+        const distancia = userPosition.distanceTo(lugarLatLng);
+        lugar.distancia = distancia;
+        return favoritosUsuario.includes(lugar.id) && distancia <= 400;
+    });
+
+    if (lugaresFavoritos.length > 0) {
+        mostrarLugares(lugaresFavoritos);
+    } else {
+        mostrarLugares([]);
+        Swal.fire({
+            icon: 'info',
+            title: 'Favoritos no encontrados',
+            text: 'No hay favoritos cercanos a tu ubicación',
+            timer: 2000
+        });
+    }
+}
+
+// Cargar favoritos del usuario
+function cargarFavoritos() {
+    const formdata = new FormData();
+    formdata.append('_token', csrfToken);
+
+    fetch('/user/favoritos', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cargar favoritos');
+        return response.json();
+    })
+    .then(data => {
+        favoritosUsuario = data.map(fav => fav.lugar_id);
+    })
+    .catch(error => {
+        console.error('Error cargando favoritos:', error);
+        favoritosUsuario = [];
+    });
+}
+
+// Función para mostrar lugares
 function mostrarLugares(lugaresArray) {
-    // Limpiar marcadores existentes
     marcadores.forEach(marker => map.removeLayer(marker));
     marcadores = [];
 
     lugaresArray.forEach(lugar => {
-        const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/user-marker.png';
+        const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/default.png';
+        const esFavorito = favoritosUsuario.includes(lugar.id);
 
         const marker = L.marker([lugar.latitud, lugar.longitud], {
             icon: L.icon({
                 iconUrl: markerIcon,
-                iconSize: [20, 24]
+                iconSize: [32, 32],
+                popupAnchor: [0, -15]
             })
         });
 
-        marker.bindPopup(`
-            <h3>${lugar.nombre}</h3>
-            <p>${lugar.descripcion}</p>
-            <p>${lugar.direccion}</p>
-            <p>Distancia: ${Math.round(lugar.distancia)}m</p>
-        `);
+        const popupContent = `
+            <div class="popup-content">
+                <h4>${lugar.nombre}</h4>
+                <p>${lugar.descripcion}</p>
+                <p class="text-muted">${lugar.direccion}</p>
+                <p>Distancia: ${Math.round(lugar.distancia)} metros</p>
+                <button class="btn-favorito ${esFavorito ? 'active' : ''}" 
+                        data-lugar-id="${lugar.id}">
+                    ${esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                </button>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent, {
+            maxWidth: 300,
+            minWidth: 200,
+            className: 'custom-popup'
+        });
+
+        marker.on('popupopen', function() {
+            const popup = this.getPopup();
+            const btn = popup._contentNode.querySelector('.btn-favorito');
+            if (btn) {
+                const lugarId = parseInt(btn.dataset.lugarId);
+                const esFavorito = favoritosUsuario.includes(lugarId);
+                btn.textContent = esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                btn.classList.toggle('active', esFavorito);
+
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    const button = e.target;
+                    const lugarId = parseInt(button.dataset.lugarId);
+
+                    const formdata = new FormData();
+                    formdata.append('_token', csrfToken);
+
+                    fetch(`/lugares/${lugarId}/favorito`, {
+                        method: 'POST',
+                        body: formdata
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                        return response.json();
+                    })
+                    .then(data => {
+                        const { status } = data;
+
+                        if (status === 'added') {
+                            if (!favoritosUsuario.includes(lugarId)) {
+                                favoritosUsuario.push(lugarId);
+                            }
+                        } else {
+                            favoritosUsuario = favoritosUsuario.filter(id => id !== lugarId);
+                        }
+
+                        button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                        button.classList.toggle('active', status === 'added');
+
+                        document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
+                            btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                            btn.classList.toggle('active', status === 'added');
+                        });
+
+                        if (activeFilter === 'Favoritos') {
+                            filtrarPorFavoritos();
+                        }
+
+                        Swal.fire({
+                            icon: status === 'added' ? 'success' : 'info',
+                            title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo completar la acción',
+                            timer: 3000
+                        });
+                    });
+                };
+            }
+        });
 
         marker.addTo(map);
         marcadores.push(marker);
     });
 }
 
-// Búsqueda de lugares
-document.getElementById('searchBox').addEventListener('input', (e) => {
+// Event listeners
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('btn-favorito')) {
+        const button = e.target;
+        const lugarId = parseInt(button.dataset.lugarId);
+
+        const formdata = new FormData();
+        formdata.append('_token', csrfToken);
+
+        fetch(`/lugares/${lugarId}/favorito`, {
+            method: 'POST',
+            body: formdata
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            const { status } = data;
+
+            button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+            button.classList.toggle('active', status === 'added');
+
+            document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
+                btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                btn.classList.toggle('active', status === 'added');
+            });
+
+            if (activeFilter === 'Favoritos') {
+                filtrarPorFavoritos();
+            }
+
+            Swal.fire({
+                icon: status === 'added' ? 'success' : 'info',
+                title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo completar la acción',
+                timer: 3000
+            });
+        });
+    }
+});
+
+document.getElementById('searchBox').addEventListener('input', function(e) {
     if (!userPosition) return;
 
-    const searchTerm = e.target.value.toLowerCase().trim(); // Eliminar espacios en blanco y convertir a minúsculas
+    const searchTerm = e.target.value.toLowerCase().trim();
 
     if (searchTerm.length === 0) {
-        // Si el campo de búsqueda está vacío, cargar los lugares cercanos
         cargarLugaresCercanos();
         return;
     }
 
-    const lugaresFiltered = lugares.filter(lugar => {
-        const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-        const distancia = userPosition.distanceTo(lugarLatLng);
-
-        // Buscar coincidencias en nombre o dirección
-        const matchNombre = lugar.nombre.toLowerCase().includes(searchTerm);
+    const lugarEncontrado = lugares.find(lugar => {
+        const matchNombreExacto = lugar.nombre.toLowerCase() === searchTerm;
+        const matchNombreParcial = lugar.nombre.toLowerCase().includes(searchTerm);
         const matchDireccion = lugar.direccion.toLowerCase().includes(searchTerm);
 
-        return matchNombre || matchDireccion; // No filtramos por distancia
+        return matchNombreExacto || matchNombreParcial || matchDireccion;
     });
 
-    if (lugaresFiltered.length > 0) {
-        // Asignar distancia a cada lugar filtrado
-        lugaresFiltered.forEach(lugar => {
-            const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-            lugar.distancia = userPosition.distanceTo(lugarLatLng);
-        });
-
-        // Mostrar los lugares filtrados
-        mostrarLugares(lugaresFiltered);
-
-        // Centrar el mapa en el primer lugar encontrado
-        const primerLugar = lugaresFiltered[0];
-        const primerLugarLatLng = L.latLng(primerLugar.latitud, primerLugar.longitud);
-        map.setView(primerLugarLatLng, 15); // Zoom al nivel 15 para ver mejor el lugar
+    if (lugarEncontrado) {
+        const lugarLatLng = L.latLng(lugarEncontrado.latitud, lugarEncontrado.longitud);
+        lugarEncontrado.distancia = userPosition.distanceTo(lugarLatLng);
+        mostrarLugares([lugarEncontrado]);
+        map.setView(lugarLatLng, 18);
     } else {
-        // Limpiar marcadores si no hay resultados
         mostrarLugares([]);
-        console.log("No se encontraron resultados para:", searchTerm);
     }
 });
 
-// Filtrar lugares por etiquetas
 function filtrarLugares(tipo) {
     if (!userPosition) return;
 
     const lugaresFiltered = lugares.filter(lugar => {
         const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
         const distancia = userPosition.distanceTo(lugarLatLng);
+        lugar.distancia = distancia;
 
-        // Verificar si el lugar tiene la etiqueta seleccionada
         const tieneEtiqueta = lugar.etiquetas && lugar.etiquetas.some(et => et.nombre === tipo);
-
-        return distancia <= 5000 && tieneEtiqueta; // Filtrar por distancia y etiqueta
+        return distancia <= 400 && tieneEtiqueta;
     });
 
     mostrarLugares(lugaresFiltered);
 }
 
-// Event listeners para los botones de filtro
 document.querySelectorAll('.filter-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const tipo = button.getAttribute('data-etiqueta'); // Obtener el nombre de la etiqueta
+    button.addEventListener('click', function() {
+        const tipo = button.getAttribute('data-etiqueta');
 
         if (activeFilter === tipo) {
             activeFilter = null;
-            button.classList.remove('active'); // Desactivar el botón
-            cargarLugaresCercanos(); // Restaurar todos los lugares cercanos
+            button.classList.remove('active');
+            cargarLugaresCercanos();
         } else {
-            // Desactivar botón anterior si existe
             document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
-
-            // Activar el botón actual
             button.classList.add('active');
             activeFilter = tipo;
-            filtrarLugares(tipo); // Filtrar por la etiqueta seleccionada
+
+            if (tipo === 'Favoritos') {
+                filtrarPorFavoritos();
+            } else {
+                filtrarLugares(tipo);
+            }
         }
     });
 });
 
 // Inicializar
 locateUser();
+cargarFavoritos();
