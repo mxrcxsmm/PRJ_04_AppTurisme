@@ -9,35 +9,40 @@ use Illuminate\Http\Request;
 class FavoritoController extends Controller
 {
     /**
+     * Obtiene los favoritos del usuario actual
+     */
+    public function index(Request $request)
+    {
+        $favoritos = $request->user()->favoritos()->get(['lugar_id']);
+        return response()->json($favoritos);
+    }
+
+    /**
      * Marca o desmarca un lugar como favorito para el usuario actual.
      */
     public function toggle(Request $request, Lugar $lugar)
-    {
-        $usuario = $request->user();
+{
+    $user = $request->user();
+    $favorito = $user->favoritos()->where('lugar_id', $lugar->id)->first();
 
-        // Buscamos si ya existe un favorito para este lugar
-        $existe = Favorito::where('usuario_id', $usuario->id)
-                          ->where('lugar_id', $lugar->id)
-                          ->first();
-
-        if ($existe) {
-            // Si existe, lo eliminamos (desmarcamos)
-            $existe->delete();
-            return response()->json([
-                'status'  => 'removed',
-                'message' => 'El lugar se ha quitado de favoritos'
-            ]);
-        } else {
-            // Si no existe, creamos uno nuevo
-            Favorito::create([
-                'nombre_etiqueta' => 'Favorito', // o lo que quieras guardar
-                'usuario_id'      => $usuario->id,
-                'lugar_id'        => $lugar->id
-            ]);
-            return response()->json([
-                'status'  => 'added',
-                'message' => 'El lugar se ha agregado a favoritos'
-            ]);
-        }
+    if ($favorito) {
+        $favorito->delete();
+        return response()->json([
+            'status' => 'removed',
+            'message' => 'Lugar quitado de favoritos',
+            'lugar_id' => $lugar->id
+        ]);
     }
+
+    $user->favoritos()->create([
+        'lugar_id' => $lugar->id,
+        'nombre_etiqueta' => $lugar->etiquetas->first()->nombre ?? 'General'
+    ]);
+
+    return response()->json([
+        'status' => 'added',
+        'message' => 'Lugar añadido a favoritos',
+        'lugar_id' => $lugar->id
+    ]);
+}
 }

@@ -237,6 +237,25 @@ body {
 }
 
 
+/* En tu archivo inicio.css */
+
+.btn-favorito.active {
+    background-color: red;
+    color: white;
+    border: 1px solid red;
+}
+
+.btn-favorito {
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+}
+
+
 /* Estilos responsivos */
 
 @media (max-width: 600px) {
