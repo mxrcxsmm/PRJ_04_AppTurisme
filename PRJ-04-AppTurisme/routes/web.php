@@ -60,7 +60,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
-
 // API para lugares
 Route::get('/admin/lugares', [LugarController::class, 'index'])->name('admin.lugares.index');
 
@@ -68,11 +67,4 @@ Route::get('/admin/lugares', [LugarController::class, 'index'])->name('admin.lug
 Route::get('/api/lugares', [LugarController::class, 'apiIndex']);
 Route::get('/api/lugares/buscar', [LugarController::class, 'buscar']);
 
-Route::middleware(['auth'])->group(function () {
-    // Route::get('admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('inicio', [UserController::class, 'index'])->name('inicio');
-    Route::get('/api/users', [UserController::class, 'getUsers']);
-    Route::get('/api/grupos', [UserController::class, 'getGrupos']);
-    Route::post('/api/grupos/join', [UserController::class, 'joinGrupo']);
-});
-
+Route::get('/api/gimcanas', [GimcanaController::class, 'listJson'])->name('api.gimcanas');

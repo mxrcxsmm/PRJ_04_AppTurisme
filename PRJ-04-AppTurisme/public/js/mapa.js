@@ -7,6 +7,8 @@ let userPosition = null;
 let activeFilter = null;
 let favoritosUsuario = [];
 let userCircle = null;
+let routingControl = null;
+
 
 // Configurar capa de mapa
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -14,8 +16,8 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-// Configurar CSRF token para Axios
-axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+// Obtener token CSRF
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // Geolocalización del usuario
 function locateUser() {
@@ -70,37 +72,51 @@ function locateUser() {
 }
 
 // Cargar lugares cercanos desde la API
-async function cargarLugaresCercanos() {
+function cargarLugaresCercanos() {
     if (!userPosition) return;
 
-    try {
-        const response = await axios.get('/api/lugares');
-        lugares = response.data;
-        await cargarFavoritos();
+    const formdata = new FormData();
+    formdata.append('_token', csrfToken);
 
-        const lugaresCercanos = lugares.filter(lugar => {
-            const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-            const distancia = userPosition.distanceTo(lugarLatLng);
-            lugar.distancia = distancia;
-            return distancia <= 400;
+    fetch('/api/lugares', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            lugares = data;
+            cargarFavoritos();
+
+            const lugaresCercanos = lugares.filter(lugar => {
+                const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+                const distancia = userPosition.distanceTo(lugarLatLng);
+                lugar.distancia = distancia;
+                return distancia <= 400;
+            });
+
+            if (activeFilter === 'Favoritos') {
+                filtrarPorFavoritos();
+            } else {
+                mostrarLugares(lugaresCercanos);
+            }
+
+            map.setView(userPosition, 15);
+        })
+        .catch(error => {
+            console.error('Error al cargar lugares:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar los lugares',
+                timer: 2000
+            });
         });
-
-        if (activeFilter === 'Favoritos') {
-            filtrarPorFavoritos();
-        } else {
-            mostrarLugares(lugaresCercanos);
-        }
-
-        map.setView(userPosition, 15);
-    } catch (error) {
-        console.error('Error al cargar lugares:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudieron cargar los lugares',
-            timer: 2000
-        });
-    }
 }
 
 // Función para filtrar por favoritos
@@ -108,13 +124,10 @@ function filtrarPorFavoritos() {
     if (!userPosition) return;
 
     if (favoritosUsuario.length === 0) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Sin favoritos',
-            text: 'No tienes lugares marcados como favoritos',
-            timer: 2000
-        });
-        return;
+        // Limpiar todos los marcadores
+        marcadores.forEach(marker => map.removeLayer(marker));
+        marcadores = [];
+
     }
 
     const lugaresFavoritos = lugares.filter(lugar => {
@@ -127,87 +140,107 @@ function filtrarPorFavoritos() {
     if (lugaresFavoritos.length > 0) {
         mostrarLugares(lugaresFavoritos);
     } else {
-        mostrarLugares([]);
-        Swal.fire({
-            icon: 'info',
-            title: 'Favoritos no encontrados',
-            text: 'No hay favoritos cercanos a tu ubicación',
-            timer: 2000
-        });
+        // Limpiar todos los marcadores
+        marcadores.forEach(marker => map.removeLayer(marker));
+        marcadores = [];
     }
 }
-
 // Cargar favoritos del usuario
-async function cargarFavoritos() {
-    try {
-        const response = await axios.get('/user/favoritos');
-        favoritosUsuario = response.data.map(fav => fav.lugar_id);
-    } catch (error) {
-        console.error('Error cargando favoritos:', error);
-        favoritosUsuario = [];
-    }
+function cargarFavoritos() {
+    const formdata = new FormData();
+    formdata.append('_token', csrfToken);
+
+    fetch('/user/favoritos', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al cargar favoritos');
+            return response.json();
+        })
+        .then(data => {
+            favoritosUsuario = data.map(fav => fav.lugar_id);
+        })
+        .catch(error => {
+            console.error('Error cargando favoritos:', error);
+            favoritosUsuario = [];
+        });
 }
 
 // Función para mostrar lugares
-async function mostrarLugares(lugaresArray) {
+function mostrarLugares(lugaresArray) {
+    // Limpiar marcadores y ruta existente
     marcadores.forEach(marker => map.removeLayer(marker));
     marcadores = [];
 
-    try {
-        lugaresArray.forEach(lugar => {
-            const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/default.png';
-            const esFavorito = favoritosUsuario.includes(lugar.id);
+    if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+    }
 
-            const marker = L.marker([lugar.latitud, lugar.longitud], {
-                icon: L.icon({
-                    iconUrl: markerIcon,
-                    iconSize: [32, 32],
-                    popupAnchor: [0, -15]
-                })
-            });
+    lugaresArray.forEach(lugar => {
+        const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/default.png';
+        const esFavorito = favoritosUsuario.includes(lugar.id);
 
-            const popupContent = `
-                <div class="popup-content">
-                    <h4>${lugar.nombre}</h4>
-                    <p>${lugar.descripcion}</p>
-                    <p class="text-muted">${lugar.direccion}</p>
-                    <p>Distancia: ${Math.round(lugar.distancia)} metros</p>
-                    <div class="row">
+        const marker = L.marker([lugar.latitud, lugar.longitud], {
+            icon: L.icon({
+                iconUrl: markerIcon,
+                iconSize: [32, 32],
+                popupAnchor: [0, -15]
+            })
+        });
+
+        const popupContent = `
+            <div class="popup-content">
+                <h4>${lugar.nombre}</h4>
+                <p>${lugar.descripcion}</p>
+                <p class="text-muted">${lugar.direccion}</p>
+                <p>Distancia: ${Math.round(lugar.distancia)} metros</p>
+                <div class="popup-buttons">
                     <button class="btn-favorito ${esFavorito ? 'active' : ''}" 
                             data-lugar-id="${lugar.id}">
                         ${esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
                     </button>
-                    <button class="btn-favorito" id="verRuta">
-                        Ver Ruta
+                    <button class="btn-ruta" data-lat="${lugar.latitud}" data-lng="${lugar.longitud}">
+                        Cómo llegar
                     </button>
-                    </div>
                 </div>
-            `;
+            </div>
+        `;
 
-            marker.bindPopup(popupContent, {
-                maxWidth: 300,
-                minWidth: 200,
-                className: 'custom-popup'
-            });
-            
-            marker.on('popupopen', function() {
-                calcularRuta([lugar.latitud, lugar.longitud]);
-                const popup = this.getPopup();
-                const btn = popup._contentNode.querySelector('.btn-favorito');
-                if (btn) {
-                    const lugarId = parseInt(btn.dataset.lugarId);
-                    const esFavorito = favoritosUsuario.includes(lugarId);
-                    btn.textContent = esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos';
-                    btn.classList.toggle('active', esFavorito);
+        marker.bindPopup(popupContent, {
+            maxWidth: 300,
+            minWidth: 200,
+            className: 'custom-popup'
+        });
 
-                    btn.onclick = async function(e) {
-                        e.stopPropagation();
-                        const button = e.target;
-                        const lugarId = parseInt(button.dataset.lugarId);
+        marker.on('popupopen', function() {
+            const popup = this.getPopup();
 
-                        try {
-                            const response = await axios.post(`/lugares/${lugarId}/favorito`);
-                            const { status } = response.data;
+            // Configurar botón de favoritos
+            const btnFavorito = popup._contentNode.querySelector('.btn-favorito');
+            if (btnFavorito) {
+                btnFavorito.onclick = function(e) {
+                    e.stopPropagation();
+                    const button = e.target;
+                    const lugarId = parseInt(button.dataset.lugarId);
+
+                    const formdata = new FormData();
+                    formdata.append('_token', csrfToken);
+
+                    fetch(`/lugares/${lugarId}/favorito`, {
+                            method: 'POST',
+                            body: formdata
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                            return response.json();
+                        })
+                        .then(data => {
+                            const { status } = data;
 
                             if (status === 'added') {
                                 if (!favoritosUsuario.includes(lugarId)) {
@@ -235,8 +268,8 @@ async function mostrarLugares(lugaresArray) {
                                 timer: 2000,
                                 showConfirmButton: false
                             });
-
-                        } catch (error) {
+                        })
+                        .catch(error => {
                             console.error('Error:', error);
                             Swal.fire({
                                 icon: 'error',
@@ -244,109 +277,192 @@ async function mostrarLugares(lugaresArray) {
                                 text: 'No se pudo completar la acción',
                                 timer: 3000
                             });
+                        });
+                };
+            }
+
+            // Configurar botón de ruta con verificación
+            const btnRuta = popup._contentNode.querySelector('.btn-ruta');
+            if (btnRuta) {
+                btnRuta.onclick = async function(e) {
+                    e.stopPropagation();
+
+                    if (!userPosition) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ubicación no disponible',
+                            text: 'No se pudo obtener tu ubicación actual',
+                            timer: 3000
+                        });
+                        return;
+                    }
+
+                    // Verificar y cargar Routing Machine si es necesario
+                    if (typeof L.Routing === 'undefined') {
+                        try {
+                            await loadRoutingMachine();
+                        } catch (error) {
+                            console.error('Error cargando Routing Machine:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'No se pudo cargar la funcionalidad de rutas',
+                                timer: 3000
+                            });
+                            return;
                         }
-                    };
-                }
-            });
+                    }
 
-            marker.addTo(map);
-            marcadores.push(marker);
+                    const destinoLat = parseFloat(btnRuta.dataset.lat);
+                    const destinoLng = parseFloat(btnRuta.dataset.lng);
+
+                    // Eliminar ruta anterior si existe
+                    if (routingControl) {
+                        map.removeControl(routingControl);
+                        routingControl = null;
+                    }
+
+                    // Crear nueva ruta
+                    routingControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(userPosition.lat, userPosition.lng),
+                            L.latLng(destinoLat, destinoLng)
+                        ],
+                        routeWhileDragging: false,
+                        showAlternatives: false,
+                        fitSelectedRoutes: true,
+                        addWaypoints: false,
+                        draggableWaypoints: false,
+                        lineOptions: {
+                            styles: [{ color: '#3a70c2', opacity: 0.7, weight: 5 }]
+                        },
+                        createMarker: function() { return null; }
+                    }).addTo(map);
+
+                    // Centrar el mapa en la ruta
+                    const bounds = L.latLngBounds([
+                        [userPosition.lat, userPosition.lng],
+                        [destinoLat, destinoLng]
+                    ]);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+
+                    // Actualizar el popup para mostrar el botón de eliminar ruta
+                    updatePopupWithRouteControls(marker, lugar, esFavorito);
+                };
+            }
         });
 
-    } catch (error) {
-        console.error('Error al mostrar lugares:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudieron cargar los lugares',
-            timer: 3000
-        });
-    }
-}
-let rutaLayer;
-
-// Función para cerrar el panel
-function cerrarPanel() {
-    document.getElementById('infoPanel').classList.remove('open');
-    document.querySelector('.filter-buttons').style.display = 'flex';
-    if (rutaLayer) {
-        map.removeLayer(rutaLayer);
-    }
-}
-async function calcularRuta(destino) {
-    if (rutaLayer) {
-        map.removeLayer(rutaLayer);
-    }
-
-    navigator.geolocation.getCurrentPosition(async function (position) {
-        const inicio = [position.coords.latitude, position.coords.longitude];
-        const url = `https://router.project-osrm.org/route/v1/foot/${inicio[1]},${inicio[0]};${destino[1]},${destino[0]}?overview=full&geometries=geojson`;
-        
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            const route = data.routes[0].geometry;
-            
-            rutaLayer = L.geoJSON(route, {
-                style: { color: 'blue', weight: 4 }
-            }).addTo(map);
-            
-            map.fitBounds(L.geoJSON(route).getBounds());
-        } catch (error) {
-            console.error('Error al calcular la ruta:', error);
-        }
-    }, function () {
-        Swal.fire({
-            icon: 'error',
-            title: 'Ubicación no disponible',
-            text: 'No se pudo obtener la ubicación del usuario.'
-        });
+        marker.addTo(map);
+        marcadores.push(marker);
     });
 }
 
+// Función auxiliar para cargar Routing Machine dinámicamente
+function loadRoutingMachine() {
+    return new Promise((resolve, reject) => {
+        if (typeof L.Routing !== 'undefined') return resolve();
 
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+// Función auxiliar para actualizar el popup con controles de ruta
+function updatePopupWithRouteControls(marker, lugar, esFavorito) {
+    const popupContent = `
+        <div class="popup-content">
+            <h4>${lugar.nombre}</h4>
+            <p>${lugar.descripcion}</p>
+            <p class="text-muted">${lugar.direccion}</p>
+            <p>Distancia: ${Math.round(lugar.distancia)} metros</p>
+            <div class="popup-buttons">
+                <button class="btn-favorito ${esFavorito ? 'active' : ''}" 
+                        data-lugar-id="${lugar.id}">
+                    ${esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                </button>
+                <button class="btn-ruta" data-lat="${lugar.latitud}" data-lng="${lugar.longitud}">
+                    Actualizar ruta
+                </button>
+                <button class="btn-eliminar-ruta">Eliminar ruta</button>
+            </div>
+        </div>
+    `;
+
+    marker.getPopup().setContent(popupContent);
+
+    // Configurar eventos para los nuevos botones
+    const popup = marker.getPopup();
+    const popupNode = popup._contentNode;
+
+    if (popupNode) {
+        const btnEliminar = popupNode.querySelector('.btn-eliminar-ruta');
+        if (btnEliminar) {
+            btnEliminar.onclick = function(e) {
+                e.stopPropagation();
+                if (routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+                mostrarLugares([lugar]); // Vuelve a mostrar el lugar sin ruta
+            };
+        }
+    }
+}
 // Event listeners
-document.addEventListener('click', async(e) => {
+document.addEventListener('click', function(e) {
     if (e.target.classList.contains('btn-favorito')) {
         const button = e.target;
         const lugarId = parseInt(button.dataset.lugarId);
 
-        try {
-            const response = await axios.post(`/lugares/${lugarId}/favorito`);
-            const { status } = response.data;
+        const formdata = new FormData();
+        formdata.append('_token', csrfToken);
 
-            button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
-            button.classList.toggle('active', status === 'added');
+        fetch(`/lugares/${lugarId}/favorito`, {
+                method: 'POST',
+                body: formdata
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                const { status } = data;
 
-            document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
-                btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
-                btn.classList.toggle('active', status === 'added');
+                button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                button.classList.toggle('active', status === 'added');
+
+                document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
+                    btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                    btn.classList.toggle('active', status === 'added');
+                });
+
+                if (activeFilter === 'Favoritos') {
+                    filtrarPorFavoritos();
+                }
+
+                Swal.fire({
+                    icon: status === 'added' ? 'success' : 'info',
+                    title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo completar la acción',
+                    timer: 3000
+                });
             });
-
-            if (activeFilter === 'Favoritos') {
-                filtrarPorFavoritos();
-            }
-
-            Swal.fire({
-                icon: status === 'added' ? 'success' : 'info',
-                title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
-                timer: 2000,
-                showConfirmButton: false
-            });
-
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo completar la acción',
-                timer: 3000
-            });
-        }
     }
 });
 
-document.getElementById('searchBox').addEventListener('input', (e) => {
+document.getElementById('searchBox').addEventListener('input', function(e) {
     if (!userPosition) return;
 
     const searchTerm = e.target.value.toLowerCase().trim();
@@ -390,7 +506,7 @@ function filtrarLugares(tipo) {
 }
 
 document.querySelectorAll('.filter-button').forEach(button => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', function() {
         const tipo = button.getAttribute('data-etiqueta');
 
         if (activeFilter === tipo) {
