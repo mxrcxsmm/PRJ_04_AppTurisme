@@ -13,6 +13,7 @@ class Favorito extends Model
         'lugar_id'
     ];
 
+    public $timestamps = false;
     // Se utiliza el timestamp creado automáticamente (created_at)
     public function usuario()
     {
