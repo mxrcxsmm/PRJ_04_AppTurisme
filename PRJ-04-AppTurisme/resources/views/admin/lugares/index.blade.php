@@ -34,13 +34,11 @@
                     <td>
                         <a href="{{ route('admin.lugares.edit', $lugar->id) }}" class="btn btn-sm btn-warning">Editar</a>
                         
-                        <form action="{{ route('admin.lugares.destroy', $lugar->id) }}" method="POST" style="display:inline-block;">
+                        <form action="{{ route('admin.lugares.destroy', $lugar->id) }}" method="POST" class="delete-form" style="display:inline-block;">
                             @csrf
                             @method('DELETE')
-                            <button class="btn btn-sm btn-danger" 
-                                    onclick="return confirm('¿Estás seguro de eliminar este lugar?')">
-                                Eliminar
-                            </button>
+                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                        </form>
                         </form>
                     </td>
                 </tr>
@@ -50,3 +48,4 @@
     </div>
 </div>
 @endsection
+

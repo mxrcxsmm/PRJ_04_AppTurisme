@@ -8,9 +8,20 @@ use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\GimcanaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
+
+
 
 Route::get('/', function () {
     return redirect('/login');
+});
+
+Route::get('/inicio', function () {
+    return view('inicio');
+})->middleware('auth')->name('inicio');
+
+Route::get('/api/authenticated-user', function () {
+    return response()->json(['name' => Auth::user()->nombre]);
 });
 
 Route::middleware(['auth'])->group(function () {

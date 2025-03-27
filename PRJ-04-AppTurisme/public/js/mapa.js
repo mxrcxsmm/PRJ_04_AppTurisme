@@ -6,6 +6,7 @@ let marcadores = [];
 let userPosition = null;
 let activeFilter = null;
 let favoritosUsuario = [];
+let userCircle = null;
 
 // Configurar capa de mapa
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -22,7 +23,6 @@ function locateUser() {
         navigator.geolocation.watchPosition(position => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-
             userPosition = L.latLng(lat, lng);
 
             if (!userMarker) {
@@ -32,8 +32,17 @@ function locateUser() {
                         iconSize: [12, 12]
                     })
                 }).addTo(map);
+
+                // Crear círculo de 400m alrededor del usuario
+                userCircle = L.circle(userPosition, {
+                    color: 'blue',
+                    fillColor: '#add8e6',
+                    fillOpacity: 0.3,
+                    radius: 400
+                }).addTo(map);
             } else {
                 userMarker.setLatLng(userPosition);
+                userCircle.setLatLng(userPosition);
             }
 
             map.setView(userPosition);
@@ -67,27 +76,22 @@ async function cargarLugaresCercanos() {
     try {
         const response = await axios.get('/api/lugares');
         lugares = response.data;
-
-        // Cargar favoritos del usuario
         await cargarFavoritos();
 
-        // Filtrar lugares cercanos (5 kilómetros de distancia)
         const lugaresCercanos = lugares.filter(lugar => {
             const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
             const distancia = userPosition.distanceTo(lugarLatLng);
             lugar.distancia = distancia;
-            return distancia <= 5000;
+            return distancia <= 400;
         });
 
-        // Si el filtro de favoritos está activo, aplicar filtro
         if (activeFilter === 'Favoritos') {
             filtrarPorFavoritos();
         } else {
             mostrarLugares(lugaresCercanos);
         }
 
-        // Centrar el mapa en la posición del usuario
-        map.setView(userPosition, 13);
+        map.setView(userPosition, 15);
     } catch (error) {
         console.error('Error al cargar lugares:', error);
         Swal.fire({
@@ -101,19 +105,35 @@ async function cargarLugaresCercanos() {
 
 // Función para filtrar por favoritos
 function filtrarPorFavoritos() {
+    if (!userPosition) return;
+
+    if (favoritosUsuario.length === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Sin favoritos',
+            text: 'No tienes lugares marcados como favoritos',
+            timer: 2000
+        });
+        return;
+    }
 
     const lugaresFavoritos = lugares.filter(lugar => {
         const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
         const distancia = userPosition.distanceTo(lugarLatLng);
         lugar.distancia = distancia;
-        return favoritosUsuario.includes(lugar.id) && distancia <= 5000;
+        return favoritosUsuario.includes(lugar.id) && distancia <= 400;
     });
 
     if (lugaresFavoritos.length > 0) {
         mostrarLugares(lugaresFavoritos);
     } else {
         mostrarLugares([]);
-
+        Swal.fire({
+            icon: 'info',
+            title: 'Favoritos no encontrados',
+            text: 'No hay favoritos cercanos a tu ubicación',
+            timer: 2000
+        });
     }
 }
 
@@ -130,17 +150,14 @@ async function cargarFavoritos() {
 
 // Función para mostrar lugares
 async function mostrarLugares(lugaresArray) {
-    // Limpiar marcadores existentes
     marcadores.forEach(marker => map.removeLayer(marker));
     marcadores = [];
 
     try {
-        // Crear marcadores para cada lugar
         lugaresArray.forEach(lugar => {
             const markerIcon = lugar.marker ? `${lugar.marker}` : '/markers/default.png';
             const esFavorito = favoritosUsuario.includes(lugar.id);
 
-            // Crear marcador
             const marker = L.marker([lugar.latitud, lugar.longitud], {
                 icon: L.icon({
                     iconUrl: markerIcon,
@@ -149,7 +166,6 @@ async function mostrarLugares(lugaresArray) {
                 })
             });
 
-            // Crear contenido del popup
             const popupContent = `
                 <div class="popup-content">
                     <h4>${lugar.nombre}</h4>
@@ -163,14 +179,12 @@ async function mostrarLugares(lugaresArray) {
                 </div>
             `;
 
-            // Asignar popup al marcador
             marker.bindPopup(popupContent, {
                 maxWidth: 300,
                 minWidth: 200,
                 className: 'custom-popup'
             });
 
-            // Evento al abrir popup para actualizar estado
             marker.on('popupopen', function() {
                 const popup = this.getPopup();
                 const btn = popup._contentNode.querySelector('.btn-favorito');
@@ -180,7 +194,6 @@ async function mostrarLugares(lugaresArray) {
                     btn.textContent = esFavorito ? 'Quitar de favoritos' : 'Añadir a favoritos';
                     btn.classList.toggle('active', esFavorito);
 
-                    // Manejar clic directamente en este botón
                     btn.onclick = async function(e) {
                         e.stopPropagation();
                         const button = e.target;
@@ -190,7 +203,6 @@ async function mostrarLugares(lugaresArray) {
                             const response = await axios.post(`/lugares/${lugarId}/favorito`);
                             const { status } = response.data;
 
-                            // Actualizar estado global
                             if (status === 'added') {
                                 if (!favoritosUsuario.includes(lugarId)) {
                                     favoritosUsuario.push(lugarId);
@@ -199,22 +211,18 @@ async function mostrarLugares(lugaresArray) {
                                 favoritosUsuario = favoritosUsuario.filter(id => id !== lugarId);
                             }
 
-                            // Actualizar este botón
                             button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
                             button.classList.toggle('active', status === 'added');
 
-                            // Actualizar todos los botones para este lugar
                             document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
                                 btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
                                 btn.classList.toggle('active', status === 'added');
                             });
 
-                            // Si estamos en el filtro de favoritos, actualizar la vista
                             if (activeFilter === 'Favoritos') {
                                 filtrarPorFavoritos();
                             }
 
-                            // Mostrar notificación
                             Swal.fire({
                                 icon: status === 'added' ? 'success' : 'info',
                                 title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
@@ -235,7 +243,6 @@ async function mostrarLugares(lugaresArray) {
                 }
             });
 
-            // Añadir marcador al mapa y al array
             marker.addTo(map);
             marcadores.push(marker);
         });
@@ -251,33 +258,28 @@ async function mostrarLugares(lugaresArray) {
     }
 }
 
-// Evento para botones de favoritos
+// Event listeners
 document.addEventListener('click', async(e) => {
     if (e.target.classList.contains('btn-favorito')) {
         const button = e.target;
         const lugarId = parseInt(button.dataset.lugarId);
-        const isActive = button.classList.contains('active');
 
         try {
             const response = await axios.post(`/lugares/${lugarId}/favorito`);
             const { status } = response.data;
 
-            // Actualización inmediata del botón
             button.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
             button.classList.toggle('active', status === 'added');
 
-            // Actualizar todos los botones para este lugar
             document.querySelectorAll(`.btn-favorito[data-lugar-id="${lugarId}"]`).forEach(btn => {
                 btn.textContent = status === 'added' ? 'Quitar de favoritos' : 'Añadir a favoritos';
                 btn.classList.toggle('active', status === 'added');
             });
 
-            // Si estamos en el filtro de favoritos, actualizar la vista
             if (activeFilter === 'Favoritos') {
                 filtrarPorFavoritos();
             }
 
-            // Mostrar notificación
             Swal.fire({
                 icon: status === 'added' ? 'success' : 'info',
                 title: status === 'added' ? '¡Añadido!' : '¡Eliminado!',
@@ -297,7 +299,6 @@ document.addEventListener('click', async(e) => {
     }
 });
 
-// Búsqueda de lugares
 document.getElementById('searchBox').addEventListener('input', (e) => {
     if (!userPosition) return;
 
@@ -326,7 +327,6 @@ document.getElementById('searchBox').addEventListener('input', (e) => {
     }
 });
 
-// Filtrar lugares por etiquetas
 function filtrarLugares(tipo) {
     if (!userPosition) return;
 
@@ -336,13 +336,12 @@ function filtrarLugares(tipo) {
         lugar.distancia = distancia;
 
         const tieneEtiqueta = lugar.etiquetas && lugar.etiquetas.some(et => et.nombre === tipo);
-        return distancia <= 5000 && tieneEtiqueta;
+        return distancia <= 400 && tieneEtiqueta;
     });
 
     mostrarLugares(lugaresFiltered);
 }
 
-// Event listeners para los botones de filtro
 document.querySelectorAll('.filter-button').forEach(button => {
     button.addEventListener('click', () => {
         const tipo = button.getAttribute('data-etiqueta');
