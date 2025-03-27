@@ -59,3 +59,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+
+// API para lugares
+Route::get('/admin/lugares', [LugarController::class, 'index'])->name('admin.lugares.index');
+
+// Ruta para la API (devuelve JSON)
+Route::get('/api/lugares', [LugarController::class, 'apiIndex']);
+Route::get('/api/lugares/buscar', [LugarController::class, 'buscar']);
+
+Route::get('/api/gimcanas', [GimcanaController::class, 'listJson'])->name('api.gimcanas');

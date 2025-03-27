@@ -1,10 +1,11 @@
 <?php
-use App\Http\Controllers\LugarController;
-use App\Http\Controllers\GimcanaController; // Importar el controlador de gimcanas
+
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LugarController;
+use App\Http\Controllers\GimcanaController;
 use App\Http\Controllers\FavoritoController;
 
-// Ruta para obtener todos los lugares
+// Ruta para obtener todos los lugares en formato JSON
 Route::get('/lugares', [LugarController::class, 'listJson'])->name('api.lugares');
 
 // Ruta para obtener todas las gimcanas en formato JSON
