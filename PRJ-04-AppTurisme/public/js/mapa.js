@@ -170,6 +170,12 @@ function cargarFavoritos() {
         });
 }
 
+// Variable para almacenar el modo de ruta
+let modoRuta = 'foot';
+document.getElementById("modoRuta").addEventListener("change", function() {
+    modoRuta = this.value;
+});
+
 // Función para mostrar lugares
 function mostrarLugares(lugaresArray) {
     // Limpiar marcadores y ruta existente

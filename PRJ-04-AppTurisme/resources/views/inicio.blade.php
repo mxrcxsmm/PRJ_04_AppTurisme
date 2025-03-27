@@ -52,6 +52,14 @@
         <button id="controlPointButton" class="control-button">PUNTO DE CONTROL 1</button>
         <button class="control-button" id="verRutaBtn">Ver Ruta</button>
     </div>
+
+    <div class="route-selector">
+        <label for="modoRuta">Modo de ruta:</label>
+        <select id="modoRuta">
+            <option value="foot">Ruta a pie</option>
+            <option value="car">Ruta en coche</option>
+        </select>
+    </div>
     @if(!$grupo)
         <button class="play-button" onclick="openLobby()">Jugar Gincana</button>
         
@@ -101,7 +109,14 @@
             </div>
         </div>
     @endif
-
+    {{-- <div class="route-selector">
+        <label for="modoRuta">Modo de ruta:</label>
+        <select id="modoRuta">
+            <option value="foot">Ruta a pie</option>
+            <option value="car">Ruta en coche</option>
+        </select>
+    </div> --}}
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/mapa.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

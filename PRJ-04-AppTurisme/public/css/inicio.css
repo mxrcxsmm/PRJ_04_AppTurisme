@@ -340,6 +340,17 @@ body {
     color: white;
 }
 
+.route-selector {
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
 
 /* Estilos responsivos */
 
@@ -404,7 +415,8 @@ body {
         /* Asegura que el mapa esté detrás de la cabecera */
     }
     .leaflet-routing-container {
-        top: 100px;
+        top: 60%;
+        left: 50%;
         width: 85%;
         max-height: 150px;
         font-size: 12px;
