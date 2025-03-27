@@ -2,15 +2,15 @@
 axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 let groupCode = null;
-let groupMembers = [];
+let groupMembers = []; // Array que almacenará los nombres de los usuarios en el grupo
 let selectedGimcana = null; // Gimcana seleccionada por el usuario
-let currentUser = []; // Nombre del usuario autenticado
+let currentUser = null; // Nombre del usuario autenticado
 
 // Obtener el nombre del usuario autenticado desde el backend
 document.addEventListener('DOMContentLoaded', () => {
     axios.get('/api/authenticated-user')
         .then(response => {
-            currentUser = response.data.name; // Asignar el nombre del usuario autenticado
+            currentUser = response.data.name; // Asigna el nombre del usuario autenticado
         })
         .catch(error => {
             console.error('Error al obtener el usuario autenticado:', error);
@@ -28,14 +28,12 @@ function closeLobby() {
     document.getElementById('lobbyModal').style.display = 'none';
 }
 
-// Configurar SweetAlert2 para que aparezca encima del modal
+// Configurar SweetAlert2 con z-index personalizado (opcional)
 const swalWithCustomZIndex = Swal.mixin({
     customClass: {
         popup: 'swal2-popup-custom',
     },
-    backdrop: `
-        rgba(0,0,0,0.4)
-    `,
+    backdrop: `rgba(0,0,0,0.4)`,
 });
 
 // Cargar las gimcanas disponibles desde la base de datos
@@ -54,6 +52,7 @@ async function loadGimcanas() {
         document.querySelectorAll('input[name="gimcana"]').forEach(input => {
             input.addEventListener('change', (event) => {
                 selectedGimcana = event.target.value;
+                updateGroupMembers();
             });
         });
     } catch (error) {
@@ -66,12 +65,16 @@ async function loadGimcanas() {
     }
 }
 
-// Crear un grupo con un código aleatorio
+// Crear un grupo y asociar automáticamente al usuario actual
 function createGroup() {
     groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     document.getElementById('groupCode').textContent = groupCode;
     document.getElementById('createGroupSection').style.display = 'block';
     document.getElementById('joinGroupSection').style.display = 'none';
+    // Si el usuario actual no está ya en el grupo, se agrega automáticamente
+    if (currentUser && !groupMembers.includes(currentUser)) {
+        groupMembers.push(currentUser);
+    }
     updateGroupMembers();
     swalWithCustomZIndex.fire({
         icon: 'success',
@@ -117,14 +120,20 @@ function joinGroup() {
     });
 }
 
-// Actualizar la lista de miembros del grupo
+// Actualizar la lista de miembros del grupo en la vista
 function updateGroupMembers() {
     const usersList = document.getElementById('usersList');
-    usersList.innerHTML = groupMembers.map(member => `<div>${member}</div>`).join('');
-    document.getElementById('startGincanaButton').disabled = groupMembers.length !== 4 || !selectedGimcana;
+    if (usersList) {
+        usersList.innerHTML = groupMembers.map(member => `<div>${member}</div>`).join('');
+    }
+    // Habilitar el botón de iniciar gimcana solo si hay exactamente 4 miembros y una gimcana seleccionada
+    const startBtn = document.getElementById('startGincanaButton');
+    if (startBtn) {
+        startBtn.disabled = (groupMembers.length !== 4 || !selectedGimcana);
+    }
 }
 
-// Iniciar la gimcana si hay 4 miembros en el grupo y una gimcana seleccionada
+// Iniciar la gimcana si se cumplen las condiciones
 function startGincana() {
     if (groupMembers.length === 4 && selectedGimcana) {
         swalWithCustomZIndex.fire({
@@ -142,16 +151,18 @@ function startGincana() {
     }
 }
 
-// Mostrar/ocultar el menú en dispositivos móviles
+// Alternar el menú en dispositivos móviles (si aplica)
 function toggleMenu() {
     const cabezeraContainer = document.querySelector('.cabezera-container');
-    cabezeraContainer.classList.toggle('active');
+    if (cabezeraContainer) {
+        cabezeraContainer.classList.toggle('active');
+    }
 }
 
-// Si el usuario está en un grupo, mostrar la pista inicial
+// Mostrar la pista inicial si el usuario ya está en un grupo (ejemplo)
 document.addEventListener('DOMContentLoaded', function () {
     const grupo = document.querySelector('.searching-text');
-    if (grupo) {
+    if (grupo && document.getElementById('pistaModal')) {
         document.getElementById('pistaModal').style.display = 'block';
     }
 });

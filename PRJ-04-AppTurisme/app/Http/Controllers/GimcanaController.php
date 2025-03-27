@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class GimcanaController extends Controller
 {
-    // Listado de gimcanas
+    // Listado de gimcanas (vista de administración)
     public function index()
     {
         $gimcanas = Gimcana::orderBy('id', 'desc')->get();
@@ -19,17 +19,18 @@ class GimcanaController extends Controller
     // Formulario para crear una nueva gimcana
     public function create()
     {
-        // Carga la relación 'lugar' con cada punto de control
+        // Carga los puntos de control junto con su relación "lugar"
         $puntos = PuntoControl::with('lugar')->get();
         return view('admin.gimcanas.create', compact('puntos'));
     }
 
-    // Guardar nueva gimcana (con try/catch y DB::beginTransaction())
+    // Guardar nueva gimcana (con transacción)
     public function store(Request $request)
     {
         $request->validate([
             'nombre'         => 'required|string|max:255',
             'descripcion'    => 'required|string',
+            // Se requiere un array con al menos 4 puntos de control
             'puntos_control' => 'required|array|min:4',
             'puntos_control.*' => 'exists:puntos_control,id',
         ]);
@@ -37,13 +38,13 @@ class GimcanaController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Crear la gimcana
+            // Crear la gimcana
             $gimcana = Gimcana::create([
                 'nombre'      => $request->nombre,
                 'descripcion' => $request->descripcion,
             ]);
 
-            // 2. Sincronizar los puntos de control en la tabla pivote
+            // Sincronizar la relación muchos a muchos con los puntos de control
             $gimcana->puntosControl()->sync($request->puntos_control);
 
             DB::commit();
@@ -52,7 +53,6 @@ class GimcanaController extends Controller
                 ->with('success', 'Gimcana creada correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()->route('admin.gimcanas.index')
                 ->with('error', 'Ocurrió un error al crear la gimcana.');
         }
@@ -61,12 +61,13 @@ class GimcanaController extends Controller
     // Formulario para editar una gimcana
     public function edit(Gimcana $gimcana)
     {
+        // Carga todos los puntos de control con su relación "lugar"
         $puntos = PuntoControl::with('lugar')->get();
         $puntosSeleccionados = $gimcana->puntosControl->pluck('id')->toArray();
         return view('admin.gimcanas.edit', compact('gimcana', 'puntos', 'puntosSeleccionados'));
     }
 
-    // Actualizar gimcana (con try/catch y DB::beginTransaction())
+    // Actualizar gimcana (con transacción)
     public function update(Request $request, Gimcana $gimcana)
     {
         $request->validate([
@@ -79,13 +80,13 @@ class GimcanaController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Actualizar la gimcana
+            // Actualizar la gimcana
             $gimcana->update([
                 'nombre'      => $request->nombre,
                 'descripcion' => $request->descripcion,
             ]);
 
-            // 2. Sincronizar los puntos de control
+            // Sincronizar los puntos de control seleccionados
             $gimcana->puntosControl()->sync($request->puntos_control);
 
             DB::commit();
@@ -94,7 +95,6 @@ class GimcanaController extends Controller
                 ->with('success', 'Gimcana actualizada correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-
             return redirect()->route('admin.gimcanas.index')
                 ->with('error', 'Ocurrió un error al actualizar la gimcana.');
         }
@@ -103,6 +103,7 @@ class GimcanaController extends Controller
     // Eliminar gimcana
     public function destroy(Gimcana $gimcana)
     {
+        // Se elimina el registro y, si la relación en la tabla pivote está configurada con onDelete cascade, se eliminarán automáticamente los registros relacionados.
         $gimcana->delete();
         return redirect()->route('admin.gimcanas.index')
             ->with('success', 'Gimcana eliminada correctamente.');
@@ -114,8 +115,8 @@ class GimcanaController extends Controller
     public function listJson()
     {
         try {
-            $gimcanas = Gimcana::orderBy('id', 'desc')->get(); // Obtener todas las gimcanas
-            return response()->json($gimcanas, 200); // Respuesta en formato JSON
+            $gimcanas = Gimcana::orderBy('id', 'desc')->with('puntosControl')->get();
+            return response()->json($gimcanas, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener las gimcanas'], 500);
         }

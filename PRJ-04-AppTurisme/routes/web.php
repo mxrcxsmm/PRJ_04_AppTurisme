@@ -72,3 +72,5 @@ Route::get('/admin/lugares', [LugarController::class, 'index'])->name('admin.lug
 // Ruta para la API (devuelve JSON)
 Route::get('/api/lugares', [LugarController::class, 'apiIndex']);
 Route::get('/api/lugares/buscar', [LugarController::class, 'buscar']);
+
+Route::get('/api/gimcanas', [GimcanaController::class, 'listJson'])->name('api.gimcanas');
