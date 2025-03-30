@@ -327,7 +327,7 @@ function mostrarLugares(lugaresArray) {
                         map.removeControl(routingControl);
                         routingControl = null;
                     }
-                    
+
                     let modoRuta = 'mapbox/walking';
                     document.getElementById("modoRuta").addEventListener("change", function() {
                         modoRuta = this.value;

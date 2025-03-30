@@ -17,6 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <title>Inicio</title>
 </head>
 <body>
@@ -63,7 +64,7 @@
         </select>
     </div>
     @if(!$grupo)
-        <button class="play-button" onclick="openLobby()">Jugar Gincana</button>
+    <button class="play-button" id="playButton">Jugar Gincana</button>
         
         <!-- Modal Lobby -->
         <div id="lobbyModal" class="modal">
@@ -122,8 +123,9 @@
     
     {{-- <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script> --}}
     <script src="{{ asset('js/mapa.js') }}"></script>
+    <script src="{{ asset('js/gincana.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ asset('js/gincana.js') }}"></script>
+
 </body>
 </html>
