@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PuntoControl extends Model
 {
     protected $table = 'puntos_control';
-    protected $fillable = ['lugar_id', 'descripcion', 'pista', 'prueba'];
+    protected $fillable = ['lugar_id', 'descripcion', 'pista', 'prueba', 'respuesta_correcta'];
     public function lugar()
     {
         return $this->belongsTo(Lugar::class, 'lugar_id');
