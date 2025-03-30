@@ -6,8 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>    
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <link rel="stylesheet" href="{{asset('css/inicio.css')}}">
     <title>Gincana</title>   
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +46,22 @@
     </div>
 
     <div id="map"></div>
+    <div id="infoPanel" class="info-panel">
+        <h2 id="infoTitle">INFO</h2>
+        <div id="infoCategories" class="categories"></div>
+        <div id="infoImages" class="image-gallery"></div>
+        <p id="infoDescription"></p>
+        <button id="controlPointButton" class="control-button">PUNTO DE CONTROL 1</button>
+        <button class="control-button" id="verRutaBtn">Ver Ruta</button>
+    </div>
 
+    <div class="route-selector">
+        <label for="modoRuta">Modo de ruta:</label>
+        <select id="modoRuta">
+            <option value="foot">Ruta a pie</option>
+            <option value="car">Ruta en coche</option>
+        </select>
+    </div>
     @if(!$grupo)
         <button class="play-button" onclick="openLobby()">Jugar Gincana</button>
         
@@ -94,8 +111,16 @@
             </div>
         </div>
     @endif
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div class="route-selector">
+        <label for="modoRuta">Modo de ruta:</label>
+        <select id="modoRuta">
+            <option value="mapbox/walking">Ruta a pie</option>
+            <option value="mapbox/driving">Ruta en coche</option>
+        </select>
+    </div>
+    
+    
+    {{-- <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script> --}}
     <script src="{{ asset('js/mapa.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -170,6 +170,12 @@ function cargarFavoritos() {
         });
 }
 
+// Variable para almacenar el modo de ruta
+// let modoRuta = 'mapbox/walking';
+// document.getElementById("modoRuta").addEventListener("change", function() {
+//     modoRuta = this.value;
+// });
+
 // Función para mostrar lugares
 function mostrarLugares(lugaresArray) {
     // Limpiar marcadores y ruta existente
@@ -321,13 +327,18 @@ function mostrarLugares(lugaresArray) {
                         map.removeControl(routingControl);
                         routingControl = null;
                     }
-
+                    
+                    let modoRuta = 'mapbox/walking';
+                    document.getElementById("modoRuta").addEventListener("change", function() {
+                        modoRuta = this.value;
+                    });
                     // Crear nueva ruta
                     routingControl = L.Routing.control({
                         waypoints: [
                             L.latLng(userPosition.lat, userPosition.lng),
                             L.latLng(destinoLat, destinoLng)
                         ],
+
                         routeWhileDragging: false,
                         showAlternatives: false,
                         fitSelectedRoutes: true,
@@ -336,7 +347,13 @@ function mostrarLugares(lugaresArray) {
                         lineOptions: {
                             styles: [{ color: '#3a70c2', opacity: 0.7, weight: 5 }]
                         },
-                        createMarker: function() { return null; }
+                        createMarker: function() { return null; },
+                        router: L.Routing.mapbox('pk.eyJ1IjoiZXJpa3BlbmFzMDIiLCJhIjoiY204dnNmeWh0MHVsdjJrc2o4OXl6Z2JjYyJ9.sSof9sNoa16DKaUAExjOFA', {
+                            profile: modoRuta, // Opciones: 'mapbox/driving', 'mapbox/cycling', 'mapbox/walking'
+                            language: 'es',
+                            alternatives: false,
+                            steps: true
+                        })
                     }).addTo(map);
 
                     // Centrar el mapa en la ruta
