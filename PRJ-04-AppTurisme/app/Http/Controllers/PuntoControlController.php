@@ -10,7 +10,7 @@ class PuntoControlController extends Controller
 {
     public function index()
     {
-        // Cargamos la relación 'lugar'
+        // Carga la relación 'lugar'
         $puntos = PuntoControl::with('lugar')->get();
         return view('admin.puntos_control.index', compact('puntos'));
     }
@@ -25,16 +25,17 @@ class PuntoControlController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'lugar_id'    => 'required|exists:lugares,id',
-            'descripcion' => 'required|string',
-            'pista'       => 'required|string',
-            'prueba'      => 'required|string',
+            'lugar_id'           => 'required|exists:lugares,id',
+            'descripcion'        => 'required|string',
+            'pista'              => 'required|string',
+            'prueba'             => 'required|string',
+            'respuesta_correcta' => 'required|string',
         ]);
 
-        PuntoControl::create($request->only('lugar_id','descripcion','pista','prueba'));
+        PuntoControl::create($request->only('lugar_id', 'descripcion', 'pista', 'prueba', 'respuesta_correcta'));
 
         return redirect()->route('admin.puntos-control.index')
-                         ->with('success','Punto de control creado correctamente.');
+                         ->with('success', 'Punto de control creado correctamente.');
     }
 
     public function edit(PuntoControl $puntos_control)
@@ -49,23 +50,23 @@ class PuntoControlController extends Controller
     public function update(Request $request, PuntoControl $puntos_control)
     {
         $request->validate([
-            'lugar_id'    => 'required|exists:lugares,id',
-            'descripcion' => 'required|string',
-            'pista'       => 'required|string',
-            'prueba'      => 'required|string',
+            'lugar_id'           => 'required|exists:lugares,id',
+            'descripcion'        => 'required|string',
+            'pista'              => 'required|string',
+            'prueba'             => 'required|string',
+            'respuesta_correcta' => 'required|string',
         ]);
 
-        $puntos_control->update($request->only('lugar_id','descripcion','pista','prueba'));
+        $puntos_control->update($request->only('lugar_id', 'descripcion', 'pista', 'prueba', 'respuesta_correcta'));
 
         return redirect()->route('admin.puntos-control.index')
-                         ->with('success','Punto de control actualizado correctamente.');
+                         ->with('success', 'Punto de control actualizado correctamente.');
     }
 
     public function destroy(PuntoControl $puntos_control)
     {
         $puntos_control->delete();
         return redirect()->route('admin.puntos-control.index')
-                         ->with('success','Punto de control eliminado correctamente.');
+                         ->with('success', 'Punto de control eliminado correctamente.');
     }
-
 }
