@@ -15,6 +15,7 @@
             <th>Descripción</th>
             <th>Pista</th>
             <th>Prueba</th>
+            <th>Respuesta Correcta
             <th>Acciones</th>
         </tr>
     </thead>
@@ -25,6 +26,7 @@
             <td>{{ $p->descripcion }}</td>
             <td>{{ $p->pista }}</td>
             <td>{{ $p->prueba }}</td>
+            <td>{{ $p->respuesta_correcta}}</td>
             <td>
                 <a href="{{ route('admin.puntos-control.edit', $p->id) }}" class="btn btn-sm btn-warning">Editar</a>
                 <form action="{{ route('admin.puntos-control.destroy', $p->id) }}" method="POST" class="delete-form" style="display:inline-block;">
