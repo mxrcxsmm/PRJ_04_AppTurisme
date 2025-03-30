@@ -8,16 +8,15 @@ class Grupo extends Model
 {
     protected $table = 'grupos';
 
-    // Agregamos 'gimcana_id' para que se pueda asignar masivamente
-    protected $fillable = ['nombre', 'descripcion', 'gimcana_id'];
+    protected $fillable = ['nombre', 'descripcion', 'codigo', 'gimcana_id'];
 
+    // Relación con usuarios
     public function usuarios()
     {
-        return $this->belongsToMany(Usuario::class, 'usuario_grupo', 'grupo_id', 'usuario_id')
-                    ->withTimestamps();
+        return $this->hasMany(Usuario::class, 'grupo_id');
     }
 
-    // Relación con Gimcana
+    // Relación con gimcana
     public function gimcana()
     {
         return $this->belongsTo(Gimcana::class, 'gimcana_id');

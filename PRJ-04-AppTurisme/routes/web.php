@@ -8,6 +8,7 @@ use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\GimcanaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\GrupoController;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -36,6 +37,10 @@ Route::middleware(['auth'])->group(function () {
     // Favorites routes
     Route::get('/user/favoritos', [FavoritoController::class, 'index']);
     Route::post('/lugares/{lugar}/favorito', [FavoritoController::class, 'toggle']);
+    
+    // Group routes
+    Route::post('/groups/create', [GrupoController::class, 'createGroup'])->name('groups.create');
+    Route::post('/groups/join', [GrupoController::class, 'joinGroup'])->name('groups.join');
 });
 
 // Admin routes
