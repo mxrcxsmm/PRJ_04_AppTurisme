@@ -1,34 +1,38 @@
-// Configurar CSRF token
-axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
+// Configurar CSRF token para fetch
+// if (typeof csrfToken === 'undefined') {
+//     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+// }
 let groupCode = null;
-let groupMembers = []; // Array que almacenará los nombres de los usuarios en el grupo
-let selectedGimcana = null; // Gimcana seleccionada por el usuario
-let currentUser = null; // Nombre del usuario autenticado
+let groupMembers = [];
+let selectedGimcana = null;
+let currentUser = null;
+let currentGroupId = null;
 
-// Obtener el nombre del usuario autenticado desde el backend
 document.addEventListener('DOMContentLoaded', () => {
-    axios.get('/api/authenticated-user')
-        .then(response => {
-            currentUser = response.data.name; // Asigna el nombre del usuario autenticado
+    fetch('/api/authenticated-user', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            currentUser = data.name;
         })
         .catch(error => {
             console.error('Error al obtener el usuario autenticado:', error);
         });
 });
 
-// Abrir el modal del lobby
 function openLobby() {
     document.getElementById('lobbyModal').style.display = 'block';
-    loadGimcanas(); // Cargar las gimcanas disponibles
+    loadGimcanas();
 }
 
-// Cerrar el modal del lobby
 function closeLobby() {
     document.getElementById('lobbyModal').style.display = 'none';
 }
 
-// Configurar SweetAlert2 con z-index personalizado (opcional)
 const swalWithCustomZIndex = Swal.mixin({
     customClass: {
         popup: 'swal2-popup-custom',
@@ -36,19 +40,24 @@ const swalWithCustomZIndex = Swal.mixin({
     backdrop: `rgba(0,0,0,0.4)`,
 });
 
-// Cargar las gimcanas disponibles desde la base de datos
 async function loadGimcanas() {
     try {
-        const response = await axios.get('/api/gimcanas'); // Ruta de tu API para obtener las gimcanas
+        const response = await fetch('/api/gimcanas', {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+        const data = await response.json();
+
         const gimcanasUl = document.getElementById('gincanasUl');
-        gimcanasUl.innerHTML = response.data.map(gimcana => `
+        gimcanasUl.innerHTML = data.map(gimcana => `
             <li>
                 <input type="radio" name="gimcana" value="${gimcana.id}" id="gimcana-${gimcana.id}" />
                 <label for="gimcana-${gimcana.id}">${gimcana.nombre} - ${gimcana.descripcion}</label>
             </li>
         `).join('');
 
-        // Agregar evento para seleccionar una gimcana
         document.querySelectorAll('input[name="gimcana"]').forEach(input => {
             input.addEventListener('change', (event) => {
                 selectedGimcana = event.target.value;
@@ -65,75 +74,130 @@ async function loadGimcanas() {
     }
 }
 
-// Crear un grupo y asociar automáticamente al usuario actual
 function createGroup() {
-    groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    document.getElementById('groupCode').textContent = groupCode;
-    document.getElementById('createGroupSection').style.display = 'block';
-    document.getElementById('joinGroupSection').style.display = 'none';
-    // Si el usuario actual no está ya en el grupo, se agrega automáticamente
-    if (currentUser && !groupMembers.includes(currentUser)) {
-        groupMembers.push(currentUser);
+    if (!selectedGimcana) {
+        swalWithCustomZIndex.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Debes seleccionar una gimcana antes de crear un grupo',
+        });
+        return;
     }
-    updateGroupMembers();
-    swalWithCustomZIndex.fire({
-        icon: 'success',
-        title: 'Grupo creado',
-        text: `Tu código de grupo es: ${groupCode}. Compártelo con tus amigos.`,
-    });
+
+    fetch('/groups/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                gimcana_id: selectedGimcana
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                groupCode = data.codigo;
+                currentGroupId = data.grupo.id;
+
+                document.getElementById('groupCode').textContent = groupCode;
+                document.getElementById('createGroupSection').style.display = 'block';
+                document.getElementById('joinGroupSection').style.display = 'none';
+
+                updateGroupMembers();
+
+                swalWithCustomZIndex.fire({
+                    icon: 'success',
+                    title: 'Grupo creado',
+                    text: `Tu código de grupo es: ${groupCode}. Compártelo con tus amigos.`,
+                });
+            } else {
+                throw new Error(data.message || 'Error al crear grupo');
+            }
+        })
+        .catch(error => {
+            console.error('Error al crear grupo:', error);
+            swalWithCustomZIndex.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo crear el grupo. Inténtalo de nuevo.',
+            });
+        });
 }
 
-// Mostrar la sección para unirse a un grupo
 function showJoinGroup() {
     document.getElementById('joinGroupSection').style.display = 'block';
     document.getElementById('createGroupSection').style.display = 'none';
 }
 
-// Unirse a un grupo con un código
 function joinGroup() {
     const code = document.getElementById('joinGroupCode').value.trim().toUpperCase();
 
-    if (code !== groupCode) {
-        swalWithCustomZIndex.fire({
-            icon: 'error',
-            title: 'Código incorrecto',
-            text: 'El código de grupo que ingresaste no es válido.',
+    fetch('/groups/join', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                codigo: code
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentGroupId = data.grupo.id;
+                updateGroupMembers();
+                swalWithCustomZIndex.fire({
+                    icon: 'success',
+                    title: 'Unido al grupo',
+                    text: 'Te has unido correctamente al grupo.',
+                });
+            } else {
+                throw new Error(data.message || 'Error al unirse al grupo');
+            }
+        })
+        .catch(error => {
+            console.error('Error al unirse al grupo:', error);
+            swalWithCustomZIndex.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo unir al grupo. Verifica el código e inténtalo de nuevo.',
+            });
         });
-        return;
-    }
-
-    if (groupMembers.includes(currentUser)) {
-        swalWithCustomZIndex.fire({
-            icon: 'warning',
-            title: 'Ya estás en el grupo',
-            text: 'No puedes unirte al grupo más de una vez.',
-        });
-        return;
-    }
-
-    groupMembers.push(currentUser);
-    updateGroupMembers();
-    swalWithCustomZIndex.fire({
-        icon: 'success',
-        title: 'Unido al grupo',
-        text: 'Te has unido correctamente al grupo.',
-    });
 }
 
-// Actualizar la lista de miembros del grupo en la vista
 function updateGroupMembers() {
-    const usersList = document.getElementById('usersList');
-    if (usersList) {
-        usersList.innerHTML = groupMembers.map(member => `<div>${member}</div>`).join('');
-    }
-    // Habilitar el botón de iniciar gimcana solo si hay exactamente 4 miembros y una gimcana seleccionada
-    const startBtn = document.getElementById('startGincanaButton');
-    if (startBtn) {
-        startBtn.disabled = (groupMembers.length !== 4 || !selectedGimcana);
-    }
+    if (!currentGroupId) return;
+
+    fetch(`/api/grupos/${currentGroupId}/members`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                groupMembers = data.members;
+                const usersList = document.getElementById('usersList');
+                if (usersList) {
+                    usersList.innerHTML = groupMembers.map(member => `<div>${member}</div>`).join('');
+                }
+
+                const startBtn = document.getElementById('startGincanaButton');
+                if (startBtn) {
+                    startBtn.disabled = (groupMembers.length !== 4 || !selectedGimcana);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener miembros del grupo:', error);
+        });
 }
 
-// Iniciar la gimcana si se cumplen las condiciones
 function startGincana() {
     if (groupMembers.length === 4 && selectedGimcana) {
         swalWithCustomZIndex.fire({
@@ -151,7 +215,6 @@ function startGincana() {
     }
 }
 
-// Alternar el menú en dispositivos móviles (si aplica)
 function toggleMenu() {
     const cabezeraContainer = document.querySelector('.cabezera-container');
     if (cabezeraContainer) {
@@ -159,8 +222,22 @@ function toggleMenu() {
     }
 }
 
-// Mostrar la pista inicial si el usuario ya está en un grupo (ejemplo)
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
+    const grupo = document.querySelector('.searching-text');
+    if (grupo && document.getElementById('pistaModal')) {
+        document.getElementById('pistaModal').style.display = 'block';
+    }
+});
+
+// Asignar eventos después de que el DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    // Asignar evento al botón de jugar
+    const playButton = document.getElementById('playButton');
+    if (playButton) {
+        playButton.addEventListener('click', openLobby);
+    }
+
+    // Resto del código de inicialización...
     const grupo = document.querySelector('.searching-text');
     if (grupo && document.getElementById('pistaModal')) {
         document.getElementById('pistaModal').style.display = 'block';
