@@ -9,7 +9,16 @@ let favoritosUsuario = [];
 let userCircle = null;
 let routingControl = null;
 
+let distanciaFiltro = 300; // Valor por defecto
 
+// Manejo del modal (añade al final del archivo)
+document.getElementById('btnFiltroDistancia').addEventListener('click', () => {
+    document.getElementById('distanceModal').style.display = 'block';
+});
+
+document.querySelector('.close-distance-modal').addEventListener('click', () => {
+    document.getElementById('distanceModal').style.display = 'none';
+});
 // Configurar capa de mapa
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -40,11 +49,12 @@ function locateUser() {
                     color: 'blue',
                     fillColor: '#add8e6',
                     fillOpacity: 0.3,
-                    radius: 400
+                    radius: distanciaFiltro
                 }).addTo(map);
             } else {
                 userMarker.setLatLng(userPosition);
                 userCircle.setLatLng(userPosition);
+                userCircle.setRadius(distanciaFiltro);
             }
 
             map.setView(userPosition);
@@ -71,52 +81,48 @@ function locateUser() {
     }
 }
 
+document.getElementById('btnAplicarDistancia').addEventListener('click', async () => {
+    const metros = parseInt(document.getElementById('inputMetros').value);
+    
+    if (metros >= 50 && metros <= 300) {
+        distanciaFiltro = metros;
+        document.getElementById('distanceModal').style.display = 'none';
+        if (userCircle) {
+            userCircle.setRadius(distanciaFiltro);
+        }
+        await cargarLugaresCercanos();
+    } else {
+        Swal.fire('Error', 'La distancia debe de permanecer entre 50 y 300 metros', 'error');
+    }
+
+
+});
 // Cargar lugares cercanos desde la API
-function cargarLugaresCercanos() {
+async function cargarLugaresCercanos() {
     if (!userPosition) return;
 
-    const formdata = new FormData();
-    formdata.append('_token', csrfToken);
-
-    fetch('/api/lugares', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Error en la respuesta del servidor');
-            return response.json();
-        })
-        .then(data => {
-            lugares = data;
-            cargarFavoritos();
-
-            const lugaresCercanos = lugares.filter(lugar => {
-                const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
-                const distancia = userPosition.distanceTo(lugarLatLng);
-                lugar.distancia = distancia;
-                return distancia <= 400;
-            });
-
-            if (activeFilter === 'Favoritos') {
-                filtrarPorFavoritos();
-            } else {
-                mostrarLugares(lugaresCercanos);
-            }
-
-            map.setView(userPosition, 15);
-        })
-        .catch(error => {
-            console.error('Error al cargar lugares:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudieron cargar los lugares',
-                timer: 2000
-            });
+    try {
+        const response = await fetch(`/lugares/json?userLat=${userPosition.lat}&userLng=${userPosition.lng}&distance=${distanciaFiltro}`);
+        const data = await response.json();
+        
+        // Mantén la lógica original de filtrado
+        const lugaresCercanos = data.filter(lugar => {
+            const lugarLatLng = L.latLng(lugar.latitud, lugar.longitud);
+            const distancia = userPosition.distanceTo(lugarLatLng);
+            lugar.distancia = distancia;
+            return distancia <= distanciaFiltro;
         });
+
+        mostrarLugares(lugaresCercanos);
+    } catch(error){
+        console.error('Error al cargar lugares:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron cargar los lugares',
+                        timer: 2000});
+    }
+                 
 }
 
 // Función para filtrar por favoritos

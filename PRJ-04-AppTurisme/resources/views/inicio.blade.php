@@ -38,11 +38,21 @@
                     <button class="filter-button" data-etiqueta="Parque">Parques</button>
                     <button class="filter-button" data-etiqueta="Bar">Bares</button>
                     <button class="filter-button" data-etiqueta="Favoritos">Favoritos</button>
+                    <button class="filter-button" id="btnFiltroDistancia">Distancia</button>
                 <form action="{{ route('logout') }}" method="POST" class="logout-form">
                     @csrf
                     <button type="submit" class="button-logout">Cerrar sesión</button>
                 </form>
+                
                 </div>
+        </div>
+        <div id="distanceModal" class="distance-modal">
+            <div class="distance-modal-content">
+                <span class="close-distance-modal">&times;</span>
+                <h4>Filtrar por distancia</h4>
+                <input type="number" id="inputMetros" placeholder="Ej: 100" min="50">
+                <button class="btn btn-primary mt-2" id="btnAplicarDistancia">Aplicar</button>
+            </div>
         </div>
     </div>
 
@@ -63,6 +73,9 @@
             <option value="car">Ruta en coche</option>
         </select>
     </div>
+
+    <!-- Botón y modal nuevo (dentro de .filter-buttons) -->
+
     @if(!$grupo)
     <button class="play-button" id="playButton">Jugar Gincana</button>
         
