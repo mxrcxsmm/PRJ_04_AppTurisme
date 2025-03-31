@@ -205,7 +205,27 @@ class LugarController extends Controller
                 $q->where('etiqueta_id', $etiquetaId);
             });
         }
+        // Nuevo filtro por distancia (solo si se envian los parámetros)
+        if ($request->has(['userLat', 'userLng', 'distance'])) {
+            $userLat = $request->userLat;
+            $userLng = $request->userLng;
+            $distance = $request->distance;
 
+            $query->selectRaw("*, 
+                (6371000 * ACOS(
+                    COS(RADIANS(?)) * 
+                    COS(RADIANS(latitud)) * 
+                    COS(RADIANS(longitud) - RADIANS(?)) + 
+                    SIN(RADIANS(?)) * 
+                    SIN(RADIANS(latitud))
+                )) AS distance", 
+                [$userLat, $userLng, $userLat]
+            )
+            ->having('distance', '<=', $distance)
+            ->orderBy('distance');
+        }
+
+        
         $lugares = $query->get();
         return response()->json($lugares);
     }

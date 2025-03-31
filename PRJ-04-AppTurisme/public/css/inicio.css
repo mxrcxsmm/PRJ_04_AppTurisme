@@ -19,7 +19,7 @@ body {
 .cabezera {
     width: auto;
     /* Ancho automático según el contenido */
-    max-width: 800px;
+    max-width: 1000px;
     /* Límite máximo de ancho */
     background-color: yellow;
     padding: 10px;
@@ -102,6 +102,50 @@ body {
     cursor: pointer;
 }
 
+/* Estilos para el modal */
+/* Estilos específicos para el modal de distancia */
+.distance-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999; /* Mayor que otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.distance-modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 350px;
+    position: relative;
+}
+
+.close-distance-modal {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-distance-modal:hover {
+    color: #000;
+}
+
+#btnFiltroDistancia {
+    width: 150px;
+    height: 50px;
+    background: white;
+    display: block !important; /* Forzar visibilidad */
+}
+
 .users-list {
     max-height: 300px;
     overflow-y: auto;
@@ -137,8 +181,9 @@ body {
 .filter-buttons {
     padding: 10px;
     display: flex;
-    gap: 10px;
+    gap: 9px;
     justify-content: center;
+    flex-wrap: wrap; /* Permitir múltiples líneas */
     /* Centra los botones horizontalmente */
 }
 
